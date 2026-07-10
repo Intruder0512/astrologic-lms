@@ -1,9 +1,10 @@
 require('dotenv').config();
-const connectDB = require('../config/db');
+const { connectDB, waitForConnection } = require('../config/db');
 const User = require('../models/User');
 
 const seed = async () => {
-  await connectDB();
+  connectDB();
+  await waitForConnection();
 
   const email = process.env.SEED_ADMIN_EMAIL;
   const password = process.env.SEED_ADMIN_PASSWORD;

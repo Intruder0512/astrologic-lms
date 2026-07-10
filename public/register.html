@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — ICAS AstroLogic Chapter</title>
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="ICAS AstroLogic Chapter emblem">
+      <span class="nav-brand-text">ICAS AstroLogic Chapter<small>Indian Council of Astrological Sciences</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<section class="section" style="padding-top:var(--space-5); display:flex; justify-content:center;">
+  <div class="container" style="max-width:520px;">
+    <div class="text-center" style="margin-bottom:var(--space-4);">
+      <span class="eyebrow">Step One of Admission</span>
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Create Your Student Account</h1>
+      <p>Registration is free. You'll pick a course, upload documents and pay from your dashboard afterward.</p>
+    </div>
+
+    <div class="form-panel" style="max-width:none;">
+      <div id="form-message" class="form-message"></div>
+      <form id="register-form">
+        <div class="field">
+          <label for="name">Full Name *</label>
+          <input type="text" id="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Email *</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="phone">Phone *</label>
+            <input type="tel" id="phone" required>
+          </div>
+          <div class="field">
+            <label for="whatsapp">WhatsApp</label>
+            <input type="tel" id="whatsapp">
+          </div>
+        </div>
+        <div class="field">
+          <label for="password">Password *</label>
+          <input type="password" id="password" minlength="6" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Create Account</button>
+        <p class="form-note text-center">Already registered? <a href="/login.html" style="color:var(--vermillion);">Log in instead</a></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS AstroLogic Chapter. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-register.js"></script>
+</body>
+</html>

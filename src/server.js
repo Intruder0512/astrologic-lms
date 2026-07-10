@@ -21,9 +21,32 @@ const app = express();
 
 connectDB();
 
-app.use(helmet());
+// Scripts stay locked to same-origin (script-src 'self') - every page's JS
+// lives in external files under /assets/js, not inline <script> blocks, so
+// this is the strict default and nothing needed loosening for it. Styles
+// and fonts need explicit allowances for the two things this design uses:
+// inline style="" attributes throughout the markup, and Google Fonts.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:'],
+        scriptSrc: ["'self'"],
+        connectSrc: ["'self'"],
+      },
+    },
+  })
+);
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Serve the public-facing website (HTML/CSS/JS). Mounted before the API
+// routes so a request for e.g. /index.html never reaches them, and before
+// the rate limiters below so static assets aren't subject to API limits.
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Basic rate limiting on public-facing endpoints (enquiries, auth) to reduce spam/abuse
 const publicLimiter = rateLimit({
@@ -76,7 +99,13 @@ app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
-app.use(notFound);
+// JSON 404 for unmatched API routes; HTML 404 for everything else (a typo'd
+// page URL, a stale link, etc.) - keeps the site itself from looking broken
+// to a human visitor while API consumers still get a machine-readable 404.
+app.use('/api', notFound);
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+});
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;

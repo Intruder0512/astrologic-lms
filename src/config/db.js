@@ -102,4 +102,25 @@ const connectDB = () => {
 
 const isDbConnected = () => mongoose.connection.readyState === 1;
 
-module.exports = { connectDB, isDbConnected };
+// For scripts that need to wait for an actual connection before running
+// (seed scripts, one-off maintenance tasks) - NOT used by server.js, which
+// deliberately does not wait so the HTTP server can start listening
+// immediately regardless of database status.
+const waitForConnection = (timeoutMs = 20000) => {
+  return new Promise((resolve, reject) => {
+    if (isDbConnected()) return resolve();
+
+    const timer = setTimeout(() => {
+      mongoose.connection.off('connected', onConnected);
+      reject(new Error(`Timed out waiting for MongoDB connection after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    const onConnected = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    mongoose.connection.once('connected', onConnected);
+  });
+};
+
+module.exports = { connectDB, isDbConnected, waitForConnection };

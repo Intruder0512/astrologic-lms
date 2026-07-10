@@ -1,14 +1,26 @@
-# ICAS AstroLogic Chapter — Backend (Phase 1: Website & Admissions)
+# ICAS AstroLogic Chapter — Website & Backend (Phase 1)
 
-Custom Node.js backend covering **Section 15, Phase 1** of the project spec:
-public course catalogue, enquiries, student registration + document upload,
-Razorpay payments, admin approval workflow, and admin dashboard metrics.
+Full-stack Node.js/Express + MongoDB app covering **Section 15, Phase 1** of
+the project spec: a public marketing website matching ICAS Lucknow's
+structure and course catalogue, plus the admissions/enquiries/payments
+backend behind it.
 
 Live classes (Section 5.5, using **Microsoft Teams** per your requirement) and
 the full curriculum/video/PDF LMS (Section 5.2–5.8) are **Phase 2** — not in
-this delivery. Say the word and I'll build that next on top of this
-foundation (it will need a `Course Content` model, Microsoft Graph API
-integration for Teams meeting creation, and student-facing lesson routes).
+this delivery.
+
+## What's included
+
+**Public website** (`/public`) — Home, Courses (live-filtered catalogue),
+Course detail, Who We Are, Contact/Enquiry, Register, Log In, Student
+Dashboard, Policies. Design is a custom system grounded in the chapter's own
+emblem (vermillion/marigold/indigo palette) and Vedic astrology's own
+geometry (the kundli chart's diamond-in-square as a recurring structural
+motif) — not a generic template. Served as static files by the same Express
+app, same-origin, so there's no CORS or separate deployment to manage.
+
+**Backend API** — auth, course catalogue, student registration + document
+upload, Razorpay payments, admin approval workflow, admin dashboard metrics.
 
 ## Stack
 
@@ -16,37 +28,48 @@ integration for Teams meeting creation, and student-facing lesson routes).
 - MongoDB + Mongoose
 - JWT auth (roles: `admin`, `instructor`, `student`)
 - Multer (local disk in Phase 1 — swap for S3/Blob before production scale)
-- Razorpay (order creation, client-side signature verification, webhook)
+- Razorpay (order creation, client-side signature verification, webhook) —
+  lazily initialized, so missing keys degrade gracefully instead of crashing
+  the app on boot
 - Nodemailer (SMTP transactional email)
+- Vanilla HTML/CSS/JS frontend (no build step, no framework) — fetches from
+  the same-origin `/api` at runtime
 
 ## Setup
 
 ```bash
 cd astrologic-lms
-cp .env.example .env      # fill in real values
+cp .env.example .env      # fill in real values (MONGODB_URI, JWT_SECRET, etc.)
 npm install
 npm run seed               # creates the first admin user from .env
-npm run dev                 # starts on http://localhost:5000
+npm run seed:courses        # seeds the 7-course ICAS catalogue (Jyotish/Vastu/Nakshatra ladder)
+npm run dev                  # starts on http://localhost:5000 - visit / for the website
 ```
 
-Requires a running MongoDB instance — for hosted deployment (e.g. Hostinger),
-use MongoDB Atlas: create a free cluster, add a database user, and **whitelist
-network access from anywhere (0.0.0.0/0)** under Atlas → Network Access, since
-Hostinger's outbound IP isn't fixed. Set `MONGO_URI` in `.env` — make sure it
-includes a database name before the `?` (e.g. `.../astrologic_lms?appName=...`),
-otherwise Mongoose silently connects to a database called `test`.
+Requires a MongoDB connection string — for hosted deployment (e.g.
+Hostinger's MongoDB Atlas connector), see the notes below. Locally or on any
+other host, set `MONGODB_URI` (or `MONGO_URI`) directly in `.env`.
 
 ## Project structure
 
 ```
+public/
+  index.html, courses.html, course.html, about.html, contact.html,
+  register.html, login.html, dashboard.html, policies.html, 404.html
+  assets/
+    css/styles.css       design system (tokens + components)
+    js/api.js             same-origin API client, auth token storage
+    js/main.js             nav toggle, header auth state, footer year
+    js/page-*.js            one file per page's specific logic
+    logo.png                your ICAS emblem
 src/
-  config/db.js            MongoDB connection
+  config/db.js            MongoDB connection (retry-with-backoff, no crash)
   models/                 User, Student, Course, Batch, Enquiry, Payment
-  middleware/              auth (JWT + role guard), upload (Multer), errorHandler
+  middleware/              auth (JWT + role guard), requireDb, upload, errorHandler
   controllers/              business logic per resource
   routes/                    Express routers, mounted in server.js
-  utils/                     token generation, email templates, admin seed script
-  server.js                app entrypoint
+  utils/                     token generation, email templates, seed scripts
+  server.js                app entrypoint - serves /public AND /api
 ```
 
 ## API summary

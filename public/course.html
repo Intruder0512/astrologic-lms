@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">Course — ICAS AstroLogic Chapter</title>
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+<style>
+  .course-hero-grid { display:grid; grid-template-columns: 1.6fr 1fr; gap: var(--space-4); align-items:start; }
+  @media (max-width: 880px) { .course-hero-grid { grid-template-columns: 1fr; } }
+  .sticky-panel { position: sticky; top: 90px; }
+  .fact-list { list-style:none; margin:0 0 var(--space-3); padding:0; display:grid; gap:0.6em; }
+  .fact-list li { display:flex; justify-content:space-between; font-size:0.9rem; border-bottom:1px dotted var(--line-on-light); padding-bottom:0.5em; }
+  .fact-list li span:first-child { color: var(--ink-soft); font-family: var(--font-mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; }
+  .syllabus-module { border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-2); }
+  .syllabus-module h4 { margin-bottom:0.4em; }
+  .syllabus-module ul { margin:0; padding-left:1.2em; color:var(--ink-soft); }
+  .faq-item { border-bottom:1px solid var(--line-on-light); padding: var(--space-2) 0; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="ICAS AstroLogic Chapter emblem">
+      <span class="nav-brand-text">ICAS AstroLogic Chapter<small>Indian Council of Astrological Sciences</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html" class="active">Courses</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<div id="loading-state" class="section"><div class="container"><div class="skeleton" style="height:60px;margin-bottom:1rem;"></div><div class="skeleton" style="height:300px;"></div></div></div>
+
+<div id="not-found-state" class="section" style="display:none;">
+  <div class="container text-center">
+    <span class="eyebrow">Not Found</span>
+    <h2>We couldn't find that course.</h2>
+    <p>It may have been renamed or the batch has closed. Browse everything currently open below.</p>
+    <a href="/courses.html" class="btn btn-primary">View All Courses</a>
+  </div>
+</div>
+
+<div id="course-content" style="display:none;">
+  <section class="hero" style="padding: var(--space-5) 0;">
+    <div class="hero-inner" style="grid-template-columns:1fr;">
+      <div>
+        <span class="eyebrow" id="c-category">Category</span>
+        <h1 id="c-title" style="font-size:clamp(2rem, 4vw, 3.2rem);">Course Title</h1>
+        <p class="lede" id="c-short">Short description</p>
+        <div class="hero-actions">
+          <a href="#enrol" class="btn btn-primary">Register for This Course</a>
+          <a href="/contact.html" class="btn btn-outline-dark">Ask a Question</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container course-hero-grid">
+      <div>
+        <h2>Overview</h2>
+        <p id="c-description">Description loading...</p>
+
+        <div id="c-outcomes-wrap" style="display:none;">
+          <h3>What You'll Learn</h3>
+          <ul id="c-outcomes"></ul>
+        </div>
+
+        <div id="c-syllabus-wrap" style="display:none;">
+          <h3 style="margin-top:var(--space-4);">Syllabus</h3>
+          <div id="c-syllabus"></div>
+        </div>
+
+        <div id="c-faq-wrap" style="display:none;">
+          <h3 style="margin-top:var(--space-4);">Frequently Asked Questions</h3>
+          <div id="c-faq"></div>
+        </div>
+      </div>
+
+      <div class="sticky-panel">
+        <div class="form-panel" style="max-width:none;">
+          <div class="course-fee" id="c-fee" style="font-size:2rem;">₹0</div>
+          <ul class="fact-list">
+            <li><span>Level</span><span id="c-level">—</span></li>
+            <li><span>Mode</span><span id="c-mode">—</span></li>
+            <li><span>Duration</span><span id="c-duration">—</span></li>
+            <li><span>Language</span><span id="c-language">—</span></li>
+            <li><span>Certificate</span><span id="c-cert">—</span></li>
+          </ul>
+          <a href="#enrol" class="btn btn-primary btn-block">Register Now</a>
+        </div>
+
+        <div class="form-panel" style="max-width:none; margin-top:var(--space-3);">
+          <h4>Upcoming Batches</h4>
+          <div id="c-batches"><p class="form-note">Loading batches…</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="enrol">
+    <div class="container">
+      <div class="section-head center" style="margin:0 auto var(--space-4);">
+        <span class="eyebrow">Register</span>
+        <h2>Ready to begin this course?</h2>
+        <p>Create your student account (or log in) to register — you'll upload documents and complete payment from your dashboard.</p>
+      </div>
+      <div class="text-center" id="enrol-cta">
+        <a href="/register.html" class="btn btn-primary">Create Student Account</a>
+        <a href="/login.html" class="btn btn-outline-dark">I Already Have an Account</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS AstroLogic Chapter. All rights reserved.</span>
+      <a href="/courses.html" style="color:var(--marigold-soft);">&larr; Back to all courses</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-course-detail.js"></script>
+</body>
+</html>

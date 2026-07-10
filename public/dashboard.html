@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard — ICAS AstroLogic Chapter</title>
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+<style>
+  .dash-grid { display:grid; grid-template-columns: 2fr 1fr; gap: var(--space-3); align-items:start; }
+  @media (max-width: 880px) { .dash-grid { grid-template-columns: 1fr; } }
+  .dash-card { background: var(--ivory); border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: var(--space-3); margin-bottom: var(--space-3); }
+  .progress-track { height: 8px; background: var(--parchment-dim); border-radius: 100px; overflow:hidden; margin: var(--space-1) 0 var(--space-2); }
+  .progress-fill { height: 100%; background: var(--vermillion); }
+  .enrollment-row { display:flex; justify-content:space-between; align-items:center; padding: 0.8em 0; border-bottom: 1px dotted var(--line-on-light); gap: var(--space-2); }
+  .doc-row { display:flex; justify-content:space-between; align-items:center; padding: 0.6em 0; border-bottom: 1px dotted var(--line-on-light); font-size:0.88rem; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="ICAS AstroLogic Chapter emblem">
+      <span class="nav-brand-text">ICAS AstroLogic Chapter<small>Indian Council of Astrological Sciences</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<div id="gate-message" class="section" style="display:none;">
+  <div class="container text-center">
+    <span class="eyebrow">Login Required</span>
+    <h2>You need to log in to view your dashboard.</h2>
+    <a href="/login.html" class="btn btn-primary">Log In</a>
+  </div>
+</div>
+
+<div id="admin-message" class="section" style="display:none;">
+  <div class="container text-center">
+    <span class="eyebrow">Admin Account</span>
+    <h2>You're logged in as an administrator.</h2>
+    <p>The student dashboard view doesn't apply to admin accounts. Admin tools are managed via the API directly for now — a full admin panel is planned for a later phase.</p>
+  </div>
+</div>
+
+<div id="dash-content" style="display:none;">
+  <section class="section" style="padding-bottom:0;">
+    <div class="container">
+      <span class="eyebrow">My Dashboard</span>
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Welcome back, <span id="dash-name">Student</span>.</h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container dash-grid">
+      <div>
+        <div class="dash-card">
+          <h3>Admission Status</h3>
+          <span class="status-pill" id="admission-status-pill">—</span>
+          <p class="form-note" id="admission-status-note" style="margin-top:var(--space-2);"></p>
+        </div>
+
+        <div class="dash-card">
+          <h3>My Courses</h3>
+          <div id="enrollments-list"><p class="form-note">Loading…</p></div>
+          <a href="/courses.html" class="btn btn-outline-light" style="margin-top:var(--space-2);">Browse More Courses</a>
+        </div>
+
+        <div class="dash-card">
+          <h3>Documents</h3>
+          <div id="documents-list"><p class="form-note">Loading…</p></div>
+
+          <form id="doc-upload-form" style="margin-top:var(--space-3); border-top:1px solid var(--line-on-light); padding-top:var(--space-3);">
+            <div id="doc-message" class="form-message"></div>
+            <div class="field-row">
+              <div class="field">
+                <label for="doc-type">Document Type</label>
+                <select id="doc-type" required>
+                  <option value="photo">Photo</option>
+                  <option value="signature">Signature</option>
+                  <option value="id_proof">ID Proof</option>
+                  <option value="address_proof">Address Proof</option>
+                  <option value="education_proof">Education Proof</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="doc-file">File (JPG, PNG or PDF)</label>
+                <input type="file" id="doc-file" accept=".jpg,.jpeg,.png,.pdf" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="doc-submit-btn">Upload Document</button>
+          </form>
+        </div>
+      </div>
+
+      <div>
+        <div class="dash-card">
+          <h3>Profile Completion</h3>
+          <div class="progress-track"><div class="progress-fill" id="profile-progress" style="width:0%;"></div></div>
+          <p class="form-note" id="profile-progress-text">0% complete</p>
+        </div>
+
+        <div class="dash-card">
+          <h3>Update Profile</h3>
+          <div id="profile-message" class="form-message"></div>
+          <form id="profile-form">
+            <div class="field">
+              <label for="p-guardian">Guardian / Spouse Name</label>
+              <input type="text" id="p-guardian">
+            </div>
+            <div class="field">
+              <label for="p-dob">Date of Birth</label>
+              <input type="date" id="p-dob">
+            </div>
+            <div class="field">
+              <label for="p-address">Address</label>
+              <input type="text" id="p-address">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="p-city">City</label>
+                <input type="text" id="p-city">
+              </div>
+              <div class="field">
+                <label for="p-state">State</label>
+                <input type="text" id="p-state">
+              </div>
+            </div>
+            <div class="field">
+              <label for="p-education">Educational Qualification</label>
+              <input type="text" id="p-education">
+            </div>
+            <button type="submit" class="btn btn-outline-light btn-block">Save Profile</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS AstroLogic Chapter. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-dashboard.js"></script>
+</body>
+</html>
