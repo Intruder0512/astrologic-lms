@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 
 const DEFAULT_DB_NAME = 'astrologic_lms';
+const INITIAL_RETRY_DELAY_MS = 2000;
+const MAX_RETRY_DELAY_MS = 30000;
+
+// Fail fast instead of silently queuing operations for up to 10s (Mongoose's
+// default buffering behavior) when the DB is down - paired with the
+// requireDb middleware, this means requests get a clear 503 immediately
+// instead of hanging.
+mongoose.set('bufferCommands', false);
 
 // Hostinger's MongoDB Atlas connector auto-injects the connection string as an
 // environment variable once linked in the dashboard, but the exact variable
@@ -33,29 +41,65 @@ const ensureDbName = (uri) => {
   return query ? `${newBase}?${query}` : newBase;
 };
 
-const connectDB = async () => {
+let retryDelay = INITIAL_RETRY_DELAY_MS;
+let retryTimer = null;
+let initialConnectAttempted = false;
+
+const scheduleRetry = () => {
+  clearTimeout(retryTimer);
+  console.log(`Retrying MongoDB connection in ${retryDelay / 1000}s...`);
+  retryTimer = setTimeout(attemptConnect, retryDelay);
+  retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY_MS);
+};
+
+const attemptConnect = async () => {
   const rawUri = getMongoUri();
 
   if (!rawUri) {
     console.error(
       'No MongoDB connection string found. Checked MONGODB_URI, MONGO_URI, ' +
-      'DATABASE_URL, MONGODB_CONNECTION_STRING, MONGO_URL - none are set.'
+      'DATABASE_URL, MONGODB_CONNECTION_STRING, MONGO_URL - none are set. ' +
+      'Server will keep running and retrying, but all database-backed routes ' +
+      'will return 503 until a connection string is configured.'
     );
-    process.exit(1);
+    scheduleRetry();
+    return;
   }
 
   const uri = ensureDbName(rawUri);
-  if (uri !== rawUri) {
+  if (uri !== rawUri && !initialConnectAttempted) {
     console.log(`Connection string had no database name - using "${DEFAULT_DB_NAME}"`);
   }
 
   try {
-    const conn = await mongoose.connect(uri);
-    console.log(`MongoDB connected: ${conn.connection.host}/${conn.connection.name}`);
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
+    console.log(`MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
+    retryDelay = INITIAL_RETRY_DELAY_MS; // reset backoff after a successful connect
   } catch (err) {
     console.error(`MongoDB connection error: ${err.message}`);
-    process.exit(1);
+    scheduleRetry();
+  } finally {
+    initialConnectAttempted = true;
   }
 };
 
-module.exports = connectDB;
+// Once initially connected, the MongoDB driver has its own reconnection
+// logic for transient network issues - these listeners just log state
+// changes so it's visible in runtime logs, they don't trigger extra retries.
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected - driver will attempt to reconnect automatically');
+});
+mongoose.connection.on('reconnected', () => {
+  console.log('MongoDB reconnected');
+});
+
+// Fire-and-forget: does NOT block server startup and never calls
+// process.exit(). The app starts listening immediately regardless of DB
+// status, and requireDb middleware protects routes that need the database.
+const connectDB = () => {
+  attemptConnect();
+};
+
+const isDbConnected = () => mongoose.connection.readyState === 1;
+
+module.exports = { connectDB, isDbConnected };

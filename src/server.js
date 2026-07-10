@@ -6,8 +6,9 @@ const morgan = require('morgan');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 
-const connectDB = require('./config/db');
+const { connectDB, isDbConnected } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
+const requireDb = require('./middleware/requireDb');
 
 const authRoutes = require('./routes/authRoutes');
 const courseRoutes = require('./routes/courseRoutes');
@@ -52,9 +53,21 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded documents (Phase 1: local disk; move to S3/Blob before scaling - see middleware/upload.js)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Always responds, even if the database is down, so this can be used as a
+// genuine uptime/health check independent of DB status.
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'ICAS AstroLogic LMS API is running', phase: 1 });
+  res.json({
+    success: true,
+    message: 'ICAS AstroLogic LMS API is running',
+    phase: 1,
+    database: isDbConnected() ? 'connected' : 'disconnected',
+  });
 });
+
+// requireDb guards every route below this point - if MongoDB is down, these
+// return a clean 503 instead of hanging or throwing a raw driver error,
+// while the server process itself (and /api/health) stays up.
+app.use('/api', requireDb);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
