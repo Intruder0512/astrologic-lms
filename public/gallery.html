@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery — ICAS Lucknow-III</title>
+<meta name="description" content="Photos from classroom sessions and certificate presentations at ICAS Lucknow-III, Purushottamanand Ashram, Hasanganj.">
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+<style>
+  .gallery-grid {
+    columns: 3 260px;
+    column-gap: var(--space-2);
+  }
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--line-on-light);
+    cursor: zoom-in;
+  }
+  .gallery-item img { display:block; width:100%; transition: transform 0.25s ease; }
+  .gallery-item:hover img { transform: scale(1.03); }
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(18,18,40,0.92);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: var(--space-3); cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 88vh; border-radius: var(--radius-md); }
+  .lightbox-close {
+    position: absolute; top: var(--space-3); right: var(--space-3);
+    color: var(--ivory); font-family: var(--font-mono); font-size: 0.85rem;
+    border: 1px solid var(--line-on-dark); padding: 0.5em 1em; border-radius: var(--radius-sm);
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="Indian Council of Astrological Sciences emblem">
+      <span class="nav-brand-text">ICAS Lucknow-III<small>Purushottamanand Ashram Centre</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/astrology.html">About Astrology</a></li>
+      <li><a href="/gallery.html" class="active">Gallery</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<section class="hero" style="padding: var(--space-5) 0;">
+  <div class="hero-inner" style="grid-template-columns:1fr;">
+    <div>
+      <span class="eyebrow">From Our Chapter</span>
+      <h1 style="font-size:clamp(2rem, 4vw, 3rem);">Gallery</h1>
+      <p class="lede">Classroom sessions and certificate presentations from ICAS Lucknow-III — real students, real batches, real certificates issued under the Indian Council of Astrological Sciences.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="gallery-grid" id="gallery-grid">
+      <div class="gallery-item"><img src="/assets/gallery/gallery-01.jpeg" alt="Students working through coursework in the classroom" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-02.jpeg" alt="A classroom session in progress at the Ashram centre" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-03.jpeg" alt="A Jyotish Praveena certificate being presented to a student" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-04.jpeg" alt="Jyotish Praveena certificate presentation" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-05.jpeg" alt="A graduate holding their ICAS marks sheet" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-06.jpeg" alt="Certificate handover at the ICAS national office" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-07.jpeg" alt="Jyotish Visharada certificate presentation" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-08.jpeg" alt="Jyotish Visharada certificate presented to a graduate" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-09.jpeg" alt="A graduate receiving her Jyotish Visharada certificate" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-10.jpeg" alt="Jyotish Visharada certificate presentation" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-11.jpeg" alt="Graduate holding certificate and marks sheet together" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-12.jpeg" alt="Marks sheet handover" loading="lazy"></div>
+      <div class="gallery-item"><img src="/assets/gallery/gallery-13.jpeg" alt="Marks sheet handover to a graduate" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">Close &times;</span>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS Lucknow-III. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-gallery.js"></script>
+</body>
+</html>

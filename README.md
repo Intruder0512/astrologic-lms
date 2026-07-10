@@ -1,9 +1,18 @@
-# ICAS AstroLogic Chapter — Website & Backend (Phase 1)
+# ICAS Lucknow-III — Website & Backend (Phase 1)
 
-Full-stack Node.js/Express + MongoDB app covering **Section 15, Phase 1** of
-the project spec: a public marketing website matching ICAS Lucknow's
-structure and course catalogue, plus the admissions/enquiries/payments
-backend behind it.
+Full-stack Node.js/Express + MongoDB app for **ICAS Lucknow-III**, a chapter
+of the Indian Council of Astrological Sciences based at Purushottamanand
+Ashram, Iradat Nagar, Hasanganj, Lucknow. Covers **Section 15, Phase 1** of
+the project spec: a public marketing website plus the admissions/enquiries/
+payments backend behind it.
+
+**Chapter scope, verified against the official ICAS registry**
+(icasindia.org/ICAS/Centres.html): this chapter is registered to teach
+**Jyotish Praveena and Jyotish Visharada only**, both online and in direct
+classroom, coordinated by Shri Markandeya Shukla. Earlier drafts of this site
+incorrectly included Vastu/Nakshatra/Bhushan courses pulled from a different
+chapter's site (Lucknow-II) — corrected. Don't add other course types back
+without confirming this chapter has been registered to teach them.
 
 Live classes (Section 5.5, using **Microsoft Teams** per your requirement) and
 the full curriculum/video/PDF LMS (Section 5.2–5.8) are **Phase 2** — not in
@@ -42,7 +51,7 @@ cd astrologic-lms
 cp .env.example .env      # fill in real values (MONGODB_URI, JWT_SECRET, etc.)
 npm install
 npm run seed               # creates the first admin user from .env
-npm run seed:courses        # seeds the 7-course ICAS catalogue (Jyotish/Vastu/Nakshatra ladder)
+npm run seed:courses        # seeds Jyotish Praveena + Visharada (the only courses this chapter is officially registered to teach)
 npm run dev                  # starts on http://localhost:5000 - visit / for the website
 ```
 

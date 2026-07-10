@@ -1,7 +1,7 @@
 {
   "name": "astrologic-lms-backend",
   "version": "1.0.0",
-  "description": "ICAS AstroLogic Chapter - Website & Admissions Backend (Phase 1)",
+  "description": "ICAS Lucknow-III - Website & Admissions Backend (Phase 1)",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

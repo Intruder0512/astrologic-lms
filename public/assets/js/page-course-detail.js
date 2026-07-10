@@ -25,7 +25,7 @@ function showNotFound() {
 function renderCourse(c, batches) {
   document.getElementById('loading-state').style.display = 'none';
   document.getElementById('course-content').style.display = 'block';
-  document.getElementById('page-title').textContent = `${c.title} — ICAS AstroLogic Chapter`;
+  document.getElementById('page-title').textContent = `${c.title} — ICAS Lucknow-III`;
 
   document.getElementById('c-category').textContent = `${c.category} · ${c.level}`;
   document.getElementById('c-title').textContent = c.title;

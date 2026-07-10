@@ -81,7 +81,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'ICAS AstroLogic LMS API is running',
+    message: 'ICAS Lucknow-III API is running',
     phase: 1,
     database: isDbConnected() ? 'connected' : 'disconnected',
   });

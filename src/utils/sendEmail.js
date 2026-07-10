@@ -35,25 +35,25 @@ const sendEmail = async ({ to, subject, html }) => {
 // Pre-built templates matching Section 6.2 admission workflow touchpoints
 const emailTemplates = {
   registrationReceived: (name, courseName) => ({
-    subject: 'We received your registration - ICAS AstroLogic Chapter',
+    subject: 'We received your registration - ICAS Lucknow-III',
     html: `<p>Dear ${name},</p>
-      <p>Thank you for registering for <strong>${courseName}</strong> with ICAS AstroLogic Chapter.
+      <p>Thank you for registering for <strong>${courseName}</strong> with ICAS Lucknow-III.
       Your application is now under verification. We will notify you once it is reviewed.</p>
-      <p>Warm regards,<br/>ICAS AstroLogic Chapter</p>`,
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
   }),
   admissionApproved: (name, courseName, batchName) => ({
-    subject: 'Admission Approved - Welcome to ICAS AstroLogic Chapter',
+    subject: 'Admission Approved - Welcome to ICAS Lucknow-III',
     html: `<p>Dear ${name},</p>
       <p>Congratulations! Your admission to <strong>${courseName}</strong> has been approved.
       You have been allocated to batch: <strong>${batchName}</strong>.</p>
       <p>You can now log in to your student dashboard to access course material.</p>
-      <p>Warm regards,<br/>ICAS AstroLogic Chapter</p>`,
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
   }),
   paymentReceived: (name, amount, receiptNumber) => ({
-    subject: 'Payment Confirmation - ICAS AstroLogic Chapter',
+    subject: 'Payment Confirmation - ICAS Lucknow-III',
     html: `<p>Dear ${name},</p>
       <p>We have received your payment of ₹${amount}. Receipt number: <strong>${receiptNumber}</strong>.</p>
-      <p>Warm regards,<br/>ICAS AstroLogic Chapter</p>`,
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
   }),
 };
 
