@@ -7,10 +7,29 @@ const Course = require('../models/Course');
 const Batch = require('../models/Batch');
 const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Lazy-initialized: the Razorpay SDK throws synchronously if key_id is
+// missing, and this file is required at server startup (server.js ->
+// paymentRoutes -> paymentController), so eager initialization would crash
+// the entire app on boot whenever Razorpay keys aren't configured yet -
+// not just the payment routes. Instead, only construct the client when a
+// payment endpoint is actually hit, and fail gracefully with a clear error.
+let razorpayClient = null;
+const getRazorpay = () => {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    const err = new Error(
+      'Razorpay is not configured - set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET'
+    );
+    err.statusCode = 503;
+    throw err;
+  }
+  if (!razorpayClient) {
+    razorpayClient = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return razorpayClient;
+};
 
 // @desc    Create a Razorpay order for course fee (full or instalment)
 // @route   POST /api/payments/create-order
@@ -42,7 +61,7 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 
   // Razorpay expects amount in the smallest currency unit (paise for INR)
-  const razorpayOrder = await razorpay.orders.create({
+  const razorpayOrder = await getRazorpay().orders.create({
     amount: Math.round(amount * 100),
     currency: 'INR',
     receipt: `rcpt_${Date.now()}`,
