@@ -1,46 +1,36 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const documentSchema = new mongoose.Schema(
+class Student extends Model {}
+
+Student.init(
   {
-    type: {
-      type: String,
-      enum: ['photo', 'signature', 'id_proof', 'address_proof', 'education_proof', 'other'],
-      required: true,
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+
+    guardianName: DataTypes.STRING,
+    dob: DataTypes.DATEONLY,
+    gender: DataTypes.ENUM('male', 'female', 'other', 'prefer_not_to_say'),
+    address: DataTypes.TEXT,
+    city: DataTypes.STRING,
+    state: DataTypes.STRING,
+    pincode: DataTypes.STRING,
+    educationalQualification: DataTypes.STRING,
+    occupation: DataTypes.STRING,
+    priorAstrologyExperience: DataTypes.TEXT,
+    preferredLanguage: {
+      type: DataTypes.ENUM('english', 'hindi', 'both'),
+      defaultValue: 'english',
     },
-    fileUrl: { type: String, required: true },
-    originalName: String,
-    uploadedAt: { type: Date, default: Date.now },
-    verified: { type: Boolean, default: false },
-  },
-  { _id: true }
-);
 
-const studentSchema = new mongoose.Schema(
-  {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    // Array of { id, type, fileUrl, originalName, uploadedAt, verified }
+    documents: { type: DataTypes.JSON, defaultValue: [] },
 
-    // Personal details (Section 6.1)
-    guardianName: String,
-    dob: Date,
-    gender: { type: String, enum: ['male', 'female', 'other', 'prefer_not_to_say'] },
-    address: String,
-    city: String,
-    state: String,
-    pincode: String,
-    educationalQualification: String,
-    occupation: String,
-    priorAstrologyExperience: String,
-    preferredLanguage: { type: String, enum: ['english', 'hindi', 'both'], default: 'english' },
+    declarationAccepted: { type: DataTypes.BOOLEAN, defaultValue: false },
+    declarationAcceptedAt: DataTypes.DATE,
 
-    documents: [documentSchema],
-
-    declarationAccepted: { type: Boolean, default: false },
-    declarationAcceptedAt: Date,
-
-    // Admission workflow status (Section 6.3)
     admissionStatus: {
-      type: String,
-      enum: [
+      type: DataTypes.ENUM(
         'application_submitted',
         'documents_pending',
         'under_verification',
@@ -48,26 +38,13 @@ const studentSchema = new mongoose.Schema(
         'approved',
         'batch_allocated',
         'rejected',
-        'correction_required',
-      ],
-      default: 'application_submitted',
+        'correction_required'
+      ),
+      defaultValue: 'application_submitted',
     },
-    rejectionReason: String,
-
-    enrollments: [
-      {
-        course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-        batch: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
-        enrolledAt: { type: Date, default: Date.now },
-        status: {
-          type: String,
-          enum: ['active', 'completed', 'dropped', 'suspended'],
-          default: 'active',
-        },
-      },
-    ],
+    rejectionReason: DataTypes.TEXT,
   },
-  { timestamps: true }
+  { sequelize, modelName: 'Student', tableName: 'students' }
 );
 
-module.exports = mongoose.model('Student', studentSchema);
+module.exports = Student;

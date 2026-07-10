@@ -1,7 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const Student = require('../models/Student');
-const Course = require('../models/Course');
-const Batch = require('../models/Batch');
+const { Student, Course, Batch, StudentEnrollment } = require('../models');
 const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 
 // @desc    Update own student profile (Section 6.1 fields)
@@ -27,15 +25,13 @@ const updateMyProfile = asyncHandler(async (req, res) => {
     if (req.body[field] !== undefined) updates[field] = req.body[field];
   });
 
-  const student = await Student.findOneAndUpdate({ user: req.user._id }, updates, {
-    new: true,
-    runValidators: true,
-  });
-
+  const student = await Student.findOne({ where: { userId: req.user.id } });
   if (!student) {
     res.status(404);
     throw new Error('Student profile not found');
   }
+
+  await student.update(updates);
 
   res.json({ success: true, student });
 });
@@ -43,7 +39,6 @@ const updateMyProfile = asyncHandler(async (req, res) => {
 // @desc    Upload a document (photo, ID proof, address proof, etc.)
 // @route   POST /api/students/me/documents
 // @access  Private/Student
-// Expects multipart/form-data with field "document" and body field "type"
 const uploadDocument = asyncHandler(async (req, res) => {
   if (!req.file) {
     res.status(400);
@@ -57,29 +52,32 @@ const uploadDocument = asyncHandler(async (req, res) => {
     throw new Error(`Invalid document type. Must be one of: ${validTypes.join(', ')}`);
   }
 
-  const student = await Student.findOne({ user: req.user._id });
+  const student = await Student.findOne({ where: { userId: req.user.id } });
   if (!student) {
     res.status(404);
     throw new Error('Student profile not found');
   }
 
-  student.documents.push({
+  const documents = Array.isArray(student.documents) ? [...student.documents] : [];
+  documents.push({
     type,
     fileUrl: `/uploads/documents/${req.file.filename}`,
     originalName: req.file.originalname,
+    uploadedAt: new Date(),
+    verified: false,
   });
 
-  // Once core documents are present, move out of "documents_pending"
-  if (student.admissionStatus === 'documents_pending' || student.admissionStatus === 'application_submitted') {
+  let admissionStatus = student.admissionStatus;
+  if (admissionStatus === 'documents_pending' || admissionStatus === 'application_submitted') {
     const hasCore = ['photo', 'id_proof', 'address_proof'].every((t) =>
-      student.documents.some((d) => d.type === t)
+      documents.some((d) => d.type === t)
     );
-    if (hasCore) student.admissionStatus = 'under_verification';
+    if (hasCore) admissionStatus = 'under_verification';
   }
 
-  await student.save();
+  await student.update({ documents, admissionStatus });
 
-  res.status(201).json({ success: true, documents: student.documents });
+  res.status(201).json({ success: true, documents });
 });
 
 // @desc    Submit course registration/enquiry intent (Section 6.2 step 1-2)
@@ -88,16 +86,16 @@ const uploadDocument = asyncHandler(async (req, res) => {
 const registerForCourse = asyncHandler(async (req, res) => {
   const { courseId, batchId } = req.body;
 
-  const course = await Course.findById(courseId);
-  if (!course || course.status !== 'published') {
+  const course = await Course.findOne({ where: { id: courseId, status: 'published' } });
+  if (!course) {
     res.status(404);
     throw new Error('Course not found or not available');
   }
 
   let batch = null;
   if (batchId) {
-    batch = await Batch.findById(batchId);
-    if (!batch || String(batch.course) !== String(course._id)) {
+    batch = await Batch.findByPk(batchId);
+    if (!batch || batch.courseId !== course.id) {
       res.status(400);
       throw new Error('Invalid batch for this course');
     }
@@ -107,21 +105,25 @@ const registerForCourse = asyncHandler(async (req, res) => {
     }
   }
 
-  const student = await Student.findOne({ user: req.user._id });
+  const student = await Student.findOne({ where: { userId: req.user.id } });
 
-  const alreadyRegistered = student.enrollments.some(
-    (e) => String(e.course) === String(course._id) && e.status === 'active'
-  );
-  if (alreadyRegistered) {
+  const existing = await StudentEnrollment.findOne({
+    where: { studentId: student.id, courseId: course.id, status: 'active' },
+  });
+  if (existing) {
     res.status(400);
     throw new Error('You are already registered for this course');
   }
 
-  student.enrollments.push({ course: course._id, batch: batch ? batch._id : undefined });
+  await StudentEnrollment.create({
+    studentId: student.id,
+    courseId: course.id,
+    batchId: batch ? batch.id : null,
+  });
+
   if (student.admissionStatus === 'application_submitted') {
-    student.admissionStatus = 'documents_pending';
+    await student.update({ admissionStatus: 'documents_pending' });
   }
-  await student.save();
 
   const template = emailTemplates.registrationReceived(req.user.name, course.title);
   await sendEmail({ to: req.user.email, ...template });
@@ -137,9 +139,18 @@ const registerForCourse = asyncHandler(async (req, res) => {
 // @route   GET /api/students/me/dashboard
 // @access  Private/Student
 const getMyDashboard = asyncHandler(async (req, res) => {
-  const student = await Student.findOne({ user: req.user._id })
-    .populate('enrollments.course', 'title slug thumbnailUrl fee')
-    .populate('enrollments.batch', 'batchName startDate mode classroomLocation');
+  const student = await Student.findOne({
+    where: { userId: req.user.id },
+    include: [
+      {
+        association: 'enrollments',
+        include: [
+          { association: 'course', attributes: ['id', 'title', 'slug', 'thumbnailUrl', 'fee'] },
+          { association: 'batch', attributes: ['id', 'batchName', 'startDate', 'mode', 'classroomLocation'] },
+        ],
+      },
+    ],
+  });
 
   if (!student) {
     res.status(404);

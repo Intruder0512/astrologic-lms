@@ -1,8 +1,6 @@
 const asyncHandler = require('express-async-handler');
-const User = require('../models/User');
-const Student = require('../models/Student');
+const { User, Student } = require('../models');
 const generateToken = require('../utils/generateToken');
-const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 
 // @desc    Register a new student (public self-registration)
 // @route   POST /api/auth/register
@@ -15,34 +13,26 @@ const registerStudent = asyncHandler(async (req, res) => {
     throw new Error('Name, email, password and phone are required');
   }
 
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  const existingUser = await User.findOne({ where: { email: email.toLowerCase() } });
   if (existingUser) {
     res.status(400);
     throw new Error('An account with this email already exists');
   }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    phone,
-    whatsapp,
-    role: 'student',
-  });
+  const user = await User.create({ name, email, password, phone, whatsapp, role: 'student' });
+  const student = await Student.create({ userId: user.id });
 
-  const student = await Student.create({ user: user._id });
-
-  const token = generateToken(user._id);
+  const token = generateToken(user.id);
 
   res.status(201).json({
     success: true,
     token,
     user: {
-      id: user._id,
+      id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      studentProfileId: student._id,
+      studentProfileId: student.id,
     },
   });
 });
@@ -58,7 +48,7 @@ const login = asyncHandler(async (req, res) => {
     throw new Error('Email and password are required');
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+  const user = await User.findOne({ where: { email: email.toLowerCase() } });
 
   if (!user || !(await user.matchPassword(password))) {
     res.status(401);
@@ -73,17 +63,12 @@ const login = asyncHandler(async (req, res) => {
   user.lastLoginAt = new Date();
   await user.save();
 
-  const token = generateToken(user._id);
+  const token = generateToken(user.id);
 
   res.json({
     success: true,
     token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
   });
 });
 
@@ -91,13 +76,22 @@ const login = asyncHandler(async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } });
   let profile = null;
 
   if (user.role === 'student') {
-    profile = await Student.findOne({ user: user._id })
-      .populate('enrollments.course', 'title slug thumbnailUrl')
-      .populate('enrollments.batch', 'batchName startDate');
+    profile = await Student.findOne({
+      where: { userId: user.id },
+      include: [
+        {
+          association: 'enrollments',
+          include: [
+            { association: 'course', attributes: ['id', 'title', 'slug', 'thumbnailUrl'] },
+            { association: 'batch', attributes: ['id', 'batchName', 'startDate'] },
+          ],
+        },
+      ],
+    });
   }
 
   res.json({ success: true, user, profile });

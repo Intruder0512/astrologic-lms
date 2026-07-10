@@ -1,92 +1,78 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
 const slugify = require('slugify');
+const { sequelize } = require('../config/db');
 
-const faqSchema = new mongoose.Schema(
-  { question: String, answer: String },
-  { _id: false }
-);
+class Course extends Model {}
 
-const courseSchema = new mongoose.Schema(
+Course.init(
   {
-    title: { type: String, required: true, trim: true },
-    slug: { type: String, unique: true },
-    courseCode: { type: String, unique: true, required: true },
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    title: { type: DataTypes.STRING, allowNull: false },
+    slug: { type: DataTypes.STRING, unique: true },
+    courseCode: { type: DataTypes.STRING, allowNull: false, unique: true },
     category: {
-      type: String,
-      enum: ['astrology', 'vastu', 'palmistry', 'nakshatra', 'other'],
-      required: true,
+      type: DataTypes.ENUM('astrology', 'vastu', 'palmistry', 'nakshatra', 'other'),
+      allowNull: false,
     },
     level: {
-      type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
-      required: true,
+      type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
+      allowNull: false,
     },
-    description: { type: String, required: true },
-    shortDescription: { type: String, maxlength: 300 },
-    learningOutcomes: [String],
-    eligibility: String,
-    prerequisites: String,
-
-    instructors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    description: { type: DataTypes.TEXT, allowNull: false },
+    shortDescription: DataTypes.STRING(300),
+    learningOutcomes: { type: DataTypes.JSON, defaultValue: [] }, // array of strings
+    eligibility: DataTypes.TEXT,
+    prerequisites: DataTypes.TEXT,
 
     mode: {
-      type: String,
-      enum: ['online', 'offline', 'hybrid'],
-      required: true,
+      type: DataTypes.ENUM('online', 'offline', 'hybrid'),
+      allowNull: false,
     },
 
-    durationWeeks: Number,
-    totalSessions: Number,
-    sessionDurationMinutes: Number,
+    durationWeeks: DataTypes.INTEGER,
+    totalSessions: DataTypes.INTEGER,
+    sessionDurationMinutes: DataTypes.INTEGER,
 
-    fee: { type: Number, required: true },
-    discountedFee: Number,
-    instalmentPlan: [
-      {
-        label: String, // e.g. "Instalment 1"
-        amount: Number,
-        dueOffsetDays: Number, // days from enrollment
-      },
-    ],
+    fee: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    discountedFee: DataTypes.DECIMAL(10, 2),
+    instalmentPlan: { type: DataTypes.JSON, defaultValue: [] }, // [{label, amount, dueOffsetDays}]
 
-    requiredDocuments: [String],
-    certificateOffered: { type: Boolean, default: true },
-    certificateRules: String,
-    accessValidityDays: Number, // how long after enrollment content stays accessible
+    requiredDocuments: { type: DataTypes.JSON, defaultValue: [] }, // array of strings
+    certificateOffered: { type: DataTypes.BOOLEAN, defaultValue: true },
+    certificateRules: DataTypes.TEXT,
+    accessValidityDays: DataTypes.INTEGER,
 
-    language: { type: String, enum: ['english', 'hindi', 'both'], default: 'english' },
+    language: {
+      type: DataTypes.ENUM('english', 'hindi', 'both'),
+      defaultValue: 'english',
+    },
 
-    syllabus: [
-      {
-        moduleTitle: String,
-        topics: [String],
-      },
-    ],
+    syllabus: { type: DataTypes.JSON, defaultValue: [] }, // [{moduleTitle, topics: []}]
+    faqs: { type: DataTypes.JSON, defaultValue: [] }, // [{question, answer}]
 
-    faqs: [faqSchema],
-
-    thumbnailUrl: String,
-    bannerUrl: String,
+    thumbnailUrl: DataTypes.STRING,
+    bannerUrl: DataTypes.STRING,
 
     status: {
-      type: String,
-      enum: ['draft', 'published', 'archived'],
-      default: 'draft',
+      type: DataTypes.ENUM('draft', 'published', 'archived'),
+      defaultValue: 'draft',
     },
 
-    maxBatchSize: Number,
-    admissionDeadline: Date,
+    maxBatchSize: DataTypes.INTEGER,
+    admissionDeadline: DataTypes.DATE,
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'Course',
+    tableName: 'courses',
+    hooks: {
+      beforeValidate: (course) => {
+        if (course.title && !course.slug) {
+          course.slug = slugify(course.title, { lower: true, strict: true });
+        }
+      },
+    },
+  }
 );
 
-courseSchema.pre('validate', function (next) {
-  if (this.title && !this.slug) {
-    this.slug = slugify(this.title, { lower: true, strict: true });
-  }
-  next();
-});
-
-courseSchema.index({ category: 1, level: 1, mode: 1, status: 1 });
-
-module.exports = mongoose.model('Course', courseSchema);
+module.exports = Course;

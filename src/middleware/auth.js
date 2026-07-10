@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
-const User = require('../models/User');
+const { User } = require('../models');
 
 // Verifies JWT and attaches req.user
 const protect = asyncHandler(async (req, res, next) => {
@@ -17,7 +17,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
+    req.user = await User.findByPk(decoded.id, { attributes: { exclude: ['password'] } });
 
     if (!req.user || !req.user.isActive) {
       res.status(401);

@@ -13,7 +13,7 @@ integration for Teams meeting creation, and student-facing lesson routes).
 ## Stack
 
 - Node.js + Express
-- MongoDB + Mongoose
+- MySQL + Sequelize ORM
 - JWT auth (roles: `admin`, `instructor`, `student`)
 - Multer (local disk in Phase 1 — swap for S3/Blob before production scale)
 - Razorpay (order creation, client-side signature verification, webhook)
@@ -23,13 +23,21 @@ integration for Teams meeting creation, and student-facing lesson routes).
 
 ```bash
 cd astrologic-lms
-cp .env.example .env      # fill in real values
+cp .env.example .env      # fill in real values (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, etc.)
 npm install
 npm run seed               # creates the first admin user from .env
 npm run dev                 # starts on http://localhost:5000
 ```
 
-Requires a running MongoDB instance (local or Atlas) — set `MONGO_URI` in `.env`.
+Requires a MySQL database — on Hostinger, create one under **Databases → MySQL Databases**
+and copy the database name, username, and password into `.env`. `DB_HOST` is
+usually `localhost` for same-server hosting.
+
+In development, `NODE_ENV !== 'production'` triggers `sequelize.sync({ alter: true })`
+on boot, which auto-creates/updates tables from the models — no manual SQL needed to
+get started. For production, switch to proper `sequelize-cli` migrations instead of
+relying on `alter: true`, since it can make destructive changes on complex schema
+diffs.
 
 ## Project structure
 
@@ -98,3 +106,22 @@ register (auth) → register-interest (course) → upload documents
   so a broken mailer won't block registrations/payments.
 - **Rate limiting**: basic limiter on `/api/auth` and `/api/enquiries` only —
   tune for production traffic.
+- **Database sync**: `sequelize.sync({ alter: true })` only runs when
+  `NODE_ENV !== 'production'`. Set `NODE_ENV=production` on Hostinger and use
+  migrations instead, or the app will skip auto-sync and expect tables to
+  already exist — run the sync once manually (temporarily set `NODE_ENV=development`,
+  boot once, then switch back) or set up `sequelize-cli` migrations properly.
+- **Nested data as JSON columns**: fields like `Course.syllabus`,
+  `Course.faqs`, `Student.documents`, and `Enquiry.followUpNotes` are stored
+  as MySQL JSON columns rather than separate tables, matching the nested
+  structure from the original spec. This keeps the schema close to the
+  Mongoose version but means you can't query *inside* them with SQL `WHERE`
+  clauses — fine for Phase 1's access patterns, worth revisiting if reporting
+  needs grow in Phase 3.
+
+## Verified locally
+
+This version was tested end-to-end against a real MySQL instance (registration,
+login, admin course creation with auto-slug, catalogue filters, course detail,
+public enquiries, student registration → dashboard flow) before being pushed —
+not just syntax-checked.

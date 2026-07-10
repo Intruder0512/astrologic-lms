@@ -1,10 +1,15 @@
 const asyncHandler = require('express-async-handler');
-const Student = require('../models/Student');
-const Batch = require('../models/Batch');
-const Course = require('../models/Course');
-const Payment = require('../models/Payment');
-const Enquiry = require('../models/Enquiry');
-const { sendEmail, emailTemplates } = require('../utils/sendEmail');
+const { Op, fn, col } = require('sequelize');
+const {
+  sequelize,
+  Student,
+  Batch,
+  Course,
+  Payment,
+  Enquiry,
+  StudentEnrollment,
+  User,
+} = require('../models');
 
 // @desc    List student applications with filterable admission status
 // @route   GET /api/admin/students
@@ -12,20 +17,22 @@ const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 const getStudents = asyncHandler(async (req, res) => {
   const { admissionStatus, page = 1, limit = 20 } = req.query;
 
-  const filter = {};
-  if (admissionStatus) filter.admissionStatus = admissionStatus;
+  const where = {};
+  if (admissionStatus) where.admissionStatus = admissionStatus;
 
-  const skip = (Number(page) - 1) * Number(limit);
+  const offset = (Number(page) - 1) * Number(limit);
 
-  const [students, total] = await Promise.all([
-    Student.find(filter)
-      .populate('user', 'name email phone whatsapp')
-      .populate('enrollments.course', 'title')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit)),
-    Student.countDocuments(filter),
-  ]);
+  const { rows: students, count: total } = await Student.findAndCountAll({
+    where,
+    include: [
+      { association: 'user', attributes: ['id', 'name', 'email', 'phone', 'whatsapp'] },
+      { association: 'enrollments', include: [{ association: 'course', attributes: ['id', 'title'] }] },
+    ],
+    order: [['createdAt', 'DESC']],
+    offset,
+    limit: Number(limit),
+    distinct: true,
+  });
 
   res.json({
     success: true,
@@ -41,9 +48,9 @@ const getStudents = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/students/:id/review
 // @access  Private/Admin
 const reviewAdmission = asyncHandler(async (req, res) => {
-  const { decision, rejectionReason } = req.body; // decision: 'approve' | 'reject' | 'request_correction'
+  const { decision, rejectionReason } = req.body;
 
-  const student = await Student.findById(req.params.id).populate('user');
+  const student = await Student.findByPk(req.params.id, { include: [{ association: 'user' }] });
   if (!student) {
     res.status(404);
     throw new Error('Student not found');
@@ -73,7 +80,7 @@ const reviewAdmission = asyncHandler(async (req, res) => {
 const allocateBatch = asyncHandler(async (req, res) => {
   const { courseId, batchId } = req.body;
 
-  const student = await Student.findById(req.params.id).populate('user');
+  const student = await Student.findByPk(req.params.id, { include: [{ association: 'user' }] });
   if (!student) {
     res.status(404);
     throw new Error('Student not found');
@@ -84,8 +91,8 @@ const allocateBatch = asyncHandler(async (req, res) => {
     throw new Error('Student must be in "approved" status before batch allocation');
   }
 
-  const batch = await Batch.findById(batchId);
-  if (!batch || String(batch.course) !== String(courseId)) {
+  const batch = await Batch.findByPk(batchId);
+  if (!batch || batch.courseId !== Number(courseId)) {
     res.status(400);
     throw new Error('Invalid batch for the given course');
   }
@@ -94,20 +101,21 @@ const allocateBatch = asyncHandler(async (req, res) => {
     throw new Error('Selected batch is already full');
   }
 
-  const enrollment = student.enrollments.find((e) => String(e.course) === String(courseId));
+  const enrollment = await StudentEnrollment.findOne({
+    where: { studentId: student.id, courseId },
+  });
   if (!enrollment) {
     res.status(400);
     throw new Error('No matching enrollment found for this course');
   }
-  enrollment.batch = batch._id;
-  student.admissionStatus = 'batch_allocated';
 
-  batch.enrolledCount += 1;
+  await enrollment.update({ batchId: batch.id });
+  await student.update({ admissionStatus: 'batch_allocated' });
+  await batch.update({ enrolledCount: batch.enrolledCount + 1 });
 
-  await Promise.all([student.save(), batch.save()]);
-
-  const course = await Course.findById(courseId);
+  const course = await Course.findByPk(courseId);
   if (student.user) {
+    const { emailTemplates, sendEmail } = require('../utils/sendEmail');
     const template = emailTemplates.admissionApproved(student.user.name, course.title, batch.batchName);
     await sendEmail({ to: student.user.email, ...template });
   }
@@ -127,35 +135,35 @@ const createBatch = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/dashboard
 // @access  Private/Admin
 const getDashboardMetrics = asyncHandler(async (req, res) => {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
   const [
     newEnquiries,
     newRegistrations,
     pendingApplications,
     activeStudents,
-    feeCollectionAgg,
+    feeCollectedRow,
     outstandingCount,
     courseWiseEnrollments,
   ] = await Promise.all([
-    Enquiry.countDocuments({ status: 'new_enquiry' }),
-    Student.countDocuments({
-      createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+    Enquiry.count({ where: { status: 'new_enquiry' } }),
+    Student.count({ where: { createdAt: { [Op.gte]: thirtyDaysAgo } } }),
+    Student.count({
+      where: { admissionStatus: { [Op.in]: ['under_verification', 'documents_pending', 'payment_pending'] } },
     }),
-    Student.countDocuments({
-      admissionStatus: { $in: ['under_verification', 'documents_pending', 'payment_pending'] },
+    Student.count({ where: { admissionStatus: { [Op.in]: ['approved', 'batch_allocated'] } } }),
+    Payment.findOne({
+      where: { status: 'paid' },
+      attributes: [[fn('SUM', col('amount')), 'total']],
+      raw: true,
     }),
-    Student.countDocuments({ admissionStatus: { $in: ['approved', 'batch_allocated'] } }),
-    Payment.aggregate([
-      { $match: { status: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-    Payment.countDocuments({ status: 'created' }),
-    Student.aggregate([
-      { $unwind: '$enrollments' },
-      { $group: { _id: '$enrollments.course', count: { $sum: 1 } } },
-      { $lookup: { from: 'courses', localField: '_id', foreignField: '_id', as: 'course' } },
-      { $unwind: '$course' },
-      { $project: { courseTitle: '$course.title', count: 1 } },
-    ]),
+    Payment.count({ where: { status: 'created' } }),
+    StudentEnrollment.findAll({
+      attributes: ['courseId', [fn('COUNT', col('StudentEnrollment.id')), 'count']],
+      include: [{ model: Course, as: 'course', attributes: ['title'] }],
+      group: ['courseId', 'course.id'],
+      raw: false,
+    }),
   ]);
 
   res.json({
@@ -165,9 +173,12 @@ const getDashboardMetrics = asyncHandler(async (req, res) => {
       newRegistrations,
       pendingApplications,
       activeStudents,
-      totalFeeCollected: feeCollectionAgg[0]?.total || 0,
+      totalFeeCollected: Number(feeCollectedRow?.total || 0),
       outstandingPaymentOrders: outstandingCount,
-      courseWiseEnrollments,
+      courseWiseEnrollments: courseWiseEnrollments.map((r) => ({
+        courseTitle: r.course?.title,
+        count: Number(r.get('count')),
+      })),
     },
   });
 });

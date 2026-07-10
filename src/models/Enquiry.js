@@ -1,23 +1,25 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const enquirySchema = new mongoose.Schema(
+class Enquiry extends Model {}
+
+Enquiry.init(
   {
-    name: { type: String, required: true },
-    email: String,
-    phone: { type: String, required: true },
-    whatsapp: String,
-    courseInterested: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-    message: String,
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: DataTypes.STRING,
+    phone: { type: DataTypes.STRING, allowNull: false },
+    whatsapp: DataTypes.STRING,
+    courseInterestedId: DataTypes.INTEGER,
+    message: DataTypes.TEXT,
 
     source: {
-      type: String,
-      enum: ['website', 'google_ads', 'meta_ads', 'referral', 'walk_in', 'other'],
-      default: 'website',
+      type: DataTypes.ENUM('website', 'google_ads', 'meta_ads', 'referral', 'walk_in', 'other'),
+      defaultValue: 'website',
     },
 
     status: {
-      type: String,
-      enum: [
+      type: DataTypes.ENUM(
         'new_enquiry',
         'contacted',
         'counselling_scheduled',
@@ -25,22 +27,16 @@ const enquirySchema = new mongoose.Schema(
         'registration_started',
         'payment_pending',
         'enrolled',
-        'not_interested',
-      ],
-      default: 'new_enquiry',
+        'not_interested'
+      ),
+      defaultValue: 'new_enquiry',
     },
 
-    counsellingCallAt: Date,
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    followUpNotes: [
-      {
-        note: String,
-        addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        addedAt: { type: Date, default: Date.now },
-      },
-    ],
+    counsellingCallAt: DataTypes.DATE,
+    assignedToId: DataTypes.INTEGER,
+    followUpNotes: { type: DataTypes.JSON, defaultValue: [] }, // [{note, addedById, addedAt}]
   },
-  { timestamps: true }
+  { sequelize, modelName: 'Enquiry', tableName: 'enquiries' }
 );
 
-module.exports = mongoose.model('Enquiry', enquirySchema);
+module.exports = Enquiry;

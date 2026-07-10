@@ -6,7 +6,8 @@ const morgan = require('morgan');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 
-const connectDB = require('./config/db');
+const { connectDB } = require('./config/db');
+require('./models'); // registers all Sequelize models + associations
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');

@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const Enquiry = require('../models/Enquiry');
+const { Enquiry, Course, User } = require('../models');
 const { sendEmail } = require('../utils/sendEmail');
 
 // @desc    Submit a public enquiry (Section 4.1, 10)
@@ -18,12 +18,11 @@ const createEnquiry = asyncHandler(async (req, res) => {
     phone,
     email,
     whatsapp,
-    courseInterested,
+    courseInterestedId: courseInterested || null,
     message,
     source: source || 'website',
   });
 
-  // Automated acknowledgement (Section 10)
   if (email) {
     await sendEmail({
       to: email,
@@ -42,22 +41,23 @@ const createEnquiry = asyncHandler(async (req, res) => {
 const getEnquiries = asyncHandler(async (req, res) => {
   const { status, source, assignedTo, page = 1, limit = 20 } = req.query;
 
-  const filter = {};
-  if (status) filter.status = status;
-  if (source) filter.source = source;
-  if (assignedTo) filter.assignedTo = assignedTo;
+  const where = {};
+  if (status) where.status = status;
+  if (source) where.source = source;
+  if (assignedTo) where.assignedToId = assignedTo;
 
-  const skip = (Number(page) - 1) * Number(limit);
+  const offset = (Number(page) - 1) * Number(limit);
 
-  const [enquiries, total] = await Promise.all([
-    Enquiry.find(filter)
-      .populate('courseInterested', 'title')
-      .populate('assignedTo', 'name')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit)),
-    Enquiry.countDocuments(filter),
-  ]);
+  const { rows: enquiries, count: total } = await Enquiry.findAndCountAll({
+    where,
+    include: [
+      { model: Course, as: 'courseInterested', attributes: ['id', 'title'] },
+      { model: User, as: 'assignedTo', attributes: ['id', 'name'] },
+    ],
+    order: [['createdAt', 'DESC']],
+    offset,
+    limit: Number(limit),
+  });
 
   res.json({
     success: true,
@@ -75,17 +75,19 @@ const getEnquiries = asyncHandler(async (req, res) => {
 const updateEnquiry = asyncHandler(async (req, res) => {
   const { status, assignedTo, counsellingCallAt, note } = req.body;
 
-  const enquiry = await Enquiry.findById(req.params.id);
+  const enquiry = await Enquiry.findByPk(req.params.id);
   if (!enquiry) {
     res.status(404);
     throw new Error('Enquiry not found');
   }
 
   if (status) enquiry.status = status;
-  if (assignedTo) enquiry.assignedTo = assignedTo;
+  if (assignedTo) enquiry.assignedToId = assignedTo;
   if (counsellingCallAt) enquiry.counsellingCallAt = counsellingCallAt;
   if (note) {
-    enquiry.followUpNotes.push({ note, addedBy: req.user._id });
+    const notes = Array.isArray(enquiry.followUpNotes) ? [...enquiry.followUpNotes] : [];
+    notes.push({ note, addedById: req.user.id, addedAt: new Date() });
+    enquiry.followUpNotes = notes;
   }
 
   await enquiry.save();
