@@ -1,78 +1,92 @@
-const { DataTypes, Model } = require('sequelize');
+const mongoose = require('mongoose');
 const slugify = require('slugify');
-const { sequelize } = require('../config/db');
 
-class Course extends Model {}
-
-Course.init(
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.STRING, allowNull: false },
-    slug: { type: DataTypes.STRING, unique: true },
-    courseCode: { type: DataTypes.STRING, allowNull: false, unique: true },
-    category: {
-      type: DataTypes.ENUM('astrology', 'vastu', 'palmistry', 'nakshatra', 'other'),
-      allowNull: false,
-    },
-    level: {
-      type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
-      allowNull: false,
-    },
-    description: { type: DataTypes.TEXT, allowNull: false },
-    shortDescription: DataTypes.STRING(300),
-    learningOutcomes: { type: DataTypes.JSON, defaultValue: [] }, // array of strings
-    eligibility: DataTypes.TEXT,
-    prerequisites: DataTypes.TEXT,
-
-    mode: {
-      type: DataTypes.ENUM('online', 'offline', 'hybrid'),
-      allowNull: false,
-    },
-
-    durationWeeks: DataTypes.INTEGER,
-    totalSessions: DataTypes.INTEGER,
-    sessionDurationMinutes: DataTypes.INTEGER,
-
-    fee: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-    discountedFee: DataTypes.DECIMAL(10, 2),
-    instalmentPlan: { type: DataTypes.JSON, defaultValue: [] }, // [{label, amount, dueOffsetDays}]
-
-    requiredDocuments: { type: DataTypes.JSON, defaultValue: [] }, // array of strings
-    certificateOffered: { type: DataTypes.BOOLEAN, defaultValue: true },
-    certificateRules: DataTypes.TEXT,
-    accessValidityDays: DataTypes.INTEGER,
-
-    language: {
-      type: DataTypes.ENUM('english', 'hindi', 'both'),
-      defaultValue: 'english',
-    },
-
-    syllabus: { type: DataTypes.JSON, defaultValue: [] }, // [{moduleTitle, topics: []}]
-    faqs: { type: DataTypes.JSON, defaultValue: [] }, // [{question, answer}]
-
-    thumbnailUrl: DataTypes.STRING,
-    bannerUrl: DataTypes.STRING,
-
-    status: {
-      type: DataTypes.ENUM('draft', 'published', 'archived'),
-      defaultValue: 'draft',
-    },
-
-    maxBatchSize: DataTypes.INTEGER,
-    admissionDeadline: DataTypes.DATE,
-  },
-  {
-    sequelize,
-    modelName: 'Course',
-    tableName: 'courses',
-    hooks: {
-      beforeValidate: (course) => {
-        if (course.title && !course.slug) {
-          course.slug = slugify(course.title, { lower: true, strict: true });
-        }
-      },
-    },
-  }
+const faqSchema = new mongoose.Schema(
+  { question: String, answer: String },
+  { _id: false }
 );
 
-module.exports = Course;
+const courseSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    slug: { type: String, unique: true },
+    courseCode: { type: String, unique: true, required: true },
+    category: {
+      type: String,
+      enum: ['astrology', 'vastu', 'palmistry', 'nakshatra', 'other'],
+      required: true,
+    },
+    level: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced'],
+      required: true,
+    },
+    description: { type: String, required: true },
+    shortDescription: { type: String, maxlength: 300 },
+    learningOutcomes: [String],
+    eligibility: String,
+    prerequisites: String,
+
+    instructors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+    mode: {
+      type: String,
+      enum: ['online', 'offline', 'hybrid'],
+      required: true,
+    },
+
+    durationWeeks: Number,
+    totalSessions: Number,
+    sessionDurationMinutes: Number,
+
+    fee: { type: Number, required: true },
+    discountedFee: Number,
+    instalmentPlan: [
+      {
+        label: String, // e.g. "Instalment 1"
+        amount: Number,
+        dueOffsetDays: Number, // days from enrollment
+      },
+    ],
+
+    requiredDocuments: [String],
+    certificateOffered: { type: Boolean, default: true },
+    certificateRules: String,
+    accessValidityDays: Number, // how long after enrollment content stays accessible
+
+    language: { type: String, enum: ['english', 'hindi', 'both'], default: 'english' },
+
+    syllabus: [
+      {
+        moduleTitle: String,
+        topics: [String],
+      },
+    ],
+
+    faqs: [faqSchema],
+
+    thumbnailUrl: String,
+    bannerUrl: String,
+
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'archived'],
+      default: 'draft',
+    },
+
+    maxBatchSize: Number,
+    admissionDeadline: Date,
+  },
+  { timestamps: true }
+);
+
+courseSchema.pre('validate', function (next) {
+  if (this.title && !this.slug) {
+    this.slug = slugify(this.title, { lower: true, strict: true });
+  }
+  next();
+});
+
+courseSchema.index({ category: 1, level: 1, mode: 1, status: 1 });
+
+module.exports = mongoose.model('Course', courseSchema);

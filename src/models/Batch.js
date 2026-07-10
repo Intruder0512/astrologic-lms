@@ -1,42 +1,45 @@
-const { DataTypes, Model } = require('sequelize');
-const { sequelize } = require('../config/db');
+const mongoose = require('mongoose');
 
-class Batch extends Model {}
-
-Batch.init(
+const batchSchema = new mongoose.Schema(
   {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    courseId: { type: DataTypes.INTEGER, allowNull: false },
-    batchName: { type: DataTypes.STRING, allowNull: false },
-    mode: { type: DataTypes.ENUM('online', 'offline', 'hybrid'), allowNull: false },
+    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+    batchName: { type: String, required: true }, // e.g. "Aug 2026 - Weekend Morning"
+    mode: { type: String, enum: ['online', 'offline', 'hybrid'], required: true },
 
-    startDate: { type: DataTypes.DATEONLY, allowNull: false },
-    endDate: DataTypes.DATEONLY,
+    startDate: { type: Date, required: true },
+    endDate: Date,
 
-    classroomLocation: DataTypes.STRING,
-    roomAllocation: DataTypes.STRING,
+    // Offline-specific (Section 5.6)
+    classroomLocation: String,
+    roomAllocation: String,
 
-    schedule: { type: DataTypes.JSON, defaultValue: [] }, // [{day, startTime, endTime}]
+    schedule: [
+      {
+        day: {
+          type: String,
+          enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+        },
+        startTime: String, // "18:00"
+        endTime: String, // "19:30"
+      },
+    ],
 
-    instructorId: DataTypes.INTEGER,
-    maxCapacity: { type: DataTypes.INTEGER, defaultValue: 30 },
-    enrolledCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    maxCapacity: { type: Number, default: 30 },
+    enrolledCount: { type: Number, default: 0 },
 
     status: {
-      type: DataTypes.ENUM('upcoming', 'ongoing', 'completed', 'cancelled'),
-      defaultValue: 'upcoming',
+      type: String,
+      enum: ['upcoming', 'ongoing', 'completed', 'cancelled'],
+      default: 'upcoming',
     },
   },
-  {
-    sequelize,
-    modelName: 'Batch',
-    tableName: 'batches',
-    getterMethods: {
-      seatsLeft() {
-        return Math.max((this.maxCapacity || 0) - (this.enrolledCount || 0), 0);
-      },
-    },
-  }
+  { timestamps: true }
 );
 
-module.exports = Batch;
+batchSchema.virtual('seatsLeft').get(function () {
+  return Math.max(this.maxCapacity - this.enrolledCount, 0);
+});
+batchSchema.set('toJSON', { virtuals: true });
+
+module.exports = mongoose.model('Batch', batchSchema);

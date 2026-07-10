@@ -1,43 +1,42 @@
-const { DataTypes, Model } = require('sequelize');
-const { sequelize } = require('../config/db');
+const mongoose = require('mongoose');
 
-class Payment extends Model {}
-
-Payment.init(
+const paymentSchema = new mongoose.Schema(
   {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    studentId: { type: DataTypes.INTEGER, allowNull: false },
-    courseId: { type: DataTypes.INTEGER, allowNull: false },
-    batchId: DataTypes.INTEGER,
+    student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+    batch: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
 
-    amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-    currency: { type: DataTypes.STRING, defaultValue: 'INR' },
+    amount: { type: Number, required: true },
+    currency: { type: String, default: 'INR' },
 
-    instalmentLabel: DataTypes.STRING,
-    couponCode: DataTypes.STRING,
-    discountApplied: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+    instalmentLabel: String, // e.g. "Instalment 1 of 3", null if full payment
+    couponCode: String,
+    discountApplied: { type: Number, default: 0 },
 
     method: {
-      type: DataTypes.ENUM('razorpay', 'cash', 'bank_transfer', 'other'),
-      allowNull: false,
+      type: String,
+      enum: ['razorpay', 'cash', 'bank_transfer', 'other'],
+      required: true,
     },
 
-    razorpayOrderId: DataTypes.STRING,
-    razorpayPaymentId: DataTypes.STRING,
-    razorpaySignature: DataTypes.STRING,
+    // Razorpay-specific
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
 
     status: {
-      type: DataTypes.ENUM('created', 'paid', 'failed', 'refunded', 'pending_verification'),
-      defaultValue: 'created',
+      type: String,
+      enum: ['created', 'paid', 'failed', 'refunded', 'pending_verification'],
+      default: 'created',
     },
 
-    receiptNumber: { type: DataTypes.STRING, unique: true },
-    invoiceUrl: DataTypes.STRING,
+    receiptNumber: { type: String, unique: true, sparse: true },
+    invoiceUrl: String,
 
-    recordedById: DataTypes.INTEGER,
-    notes: DataTypes.TEXT,
+    recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // for offline entries
+    notes: String,
   },
-  { sequelize, modelName: 'Payment', tableName: 'payments' }
+  { timestamps: true }
 );
 
-module.exports = Payment;
+module.exports = mongoose.model('Payment', paymentSchema);

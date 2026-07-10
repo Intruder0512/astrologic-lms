@@ -1,7 +1,10 @@
 const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
-const { Payment, Student, Course, User } = require('../models');
+const Payment = require('../models/Payment');
+const Student = require('../models/Student');
+const Course = require('../models/Course');
+const Batch = require('../models/Batch');
 const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 
 const razorpay = new Razorpay({
@@ -15,48 +18,48 @@ const razorpay = new Razorpay({
 const createOrder = asyncHandler(async (req, res) => {
   const { courseId, batchId, instalmentLabel } = req.body;
 
-  const course = await Course.findByPk(courseId);
+  const course = await Course.findById(courseId);
   if (!course) {
     res.status(404);
     throw new Error('Course not found');
   }
 
-  let amount = Number(course.discountedFee || course.fee);
+  let amount = course.discountedFee || course.fee;
 
   if (instalmentLabel) {
-    const plan = Array.isArray(course.instalmentPlan) ? course.instalmentPlan : [];
-    const instalment = plan.find((i) => i.label === instalmentLabel);
+    const instalment = course.instalmentPlan.find((i) => i.label === instalmentLabel);
     if (!instalment) {
       res.status(400);
       throw new Error('Invalid instalment label for this course');
     }
-    amount = Number(instalment.amount);
+    amount = instalment.amount;
   }
 
-  const student = await Student.findOne({ where: { userId: req.user.id } });
+  const student = await Student.findOne({ user: req.user._id });
   if (!student) {
     res.status(404);
     throw new Error('Student profile not found');
   }
 
+  // Razorpay expects amount in the smallest currency unit (paise for INR)
   const razorpayOrder = await razorpay.orders.create({
-    amount: Math.round(amount * 100), // paise
+    amount: Math.round(amount * 100),
     currency: 'INR',
     receipt: `rcpt_${Date.now()}`,
     notes: {
-      studentId: String(student.id),
-      courseId: String(course.id),
+      studentId: String(student._id),
+      courseId: String(course._id),
       batchId: batchId || '',
       instalmentLabel: instalmentLabel || 'full',
     },
   });
 
   const payment = await Payment.create({
-    studentId: student.id,
-    courseId: course.id,
-    batchId: batchId || null,
+    student: student._id,
+    course: course._id,
+    batch: batchId || undefined,
     amount,
-    instalmentLabel: instalmentLabel || null,
+    instalmentLabel: instalmentLabel || undefined,
     method: 'razorpay',
     razorpayOrderId: razorpayOrder.id,
     status: 'created',
@@ -68,7 +71,7 @@ const createOrder = asyncHandler(async (req, res) => {
     amount: razorpayOrder.amount,
     currency: razorpayOrder.currency,
     razorpayKeyId: process.env.RAZORPAY_KEY_ID,
-    paymentRecordId: payment.id,
+    paymentRecordId: payment._id,
   });
 });
 
@@ -93,40 +96,49 @@ const verifyPayment = asyncHandler(async (req, res) => {
     throw new Error('Payment verification failed - signature mismatch');
   }
 
-  const payment = await Payment.findOne({ where: { razorpayOrderId: razorpay_order_id } });
+  const payment = await Payment.findOneAndUpdate(
+    { razorpayOrderId: razorpay_order_id },
+    {
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      status: 'paid',
+      receiptNumber: `ICAS-${Date.now()}`,
+    },
+    { new: true }
+  ).populate('student');
+
   if (!payment) {
     res.status(404);
     throw new Error('Payment record not found');
   }
 
-  await payment.update({
-    razorpayPaymentId: razorpay_payment_id,
-    razorpaySignature: razorpay_signature,
-    status: 'paid',
-    receiptNumber: `ICAS-${Date.now()}`,
-  });
-
-  const student = await Student.findByPk(payment.studentId, { include: [{ association: 'user' }] });
-  if (student && !['approved', 'batch_allocated'].includes(student.admissionStatus)) {
-    await student.update({ admissionStatus: 'under_verification' });
+  // Move student to payment cleared / approval-ready state
+  const student = await Student.findById(payment.student._id).populate('user');
+  if (student && student.admissionStatus !== 'approved' && student.admissionStatus !== 'batch_allocated') {
+    student.admissionStatus = 'under_verification';
+    await student.save();
   }
 
   if (student && student.user) {
-    const template = emailTemplates.paymentReceived(student.user.name, payment.amount, payment.receiptNumber);
+    const template = emailTemplates.paymentReceived(
+      student.user.name,
+      payment.amount,
+      payment.receiptNumber
+    );
     await sendEmail({ to: student.user.email, ...template });
   }
 
   res.json({ success: true, payment });
 });
 
-// @desc    Razorpay webhook (server-to-server, source of truth)
+// @desc    Razorpay webhook (server-to-server, source of truth - use in addition to client verify)
 // @route   POST /api/payments/webhook
 // @access  Public (secured via signature header)
 const razorpayWebhook = asyncHandler(async (req, res) => {
   const webhookSignature = req.headers['x-razorpay-signature'];
   const expectedSignature = crypto
     .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
-    .update(req.rawBody)
+    .update(req.rawBody) // requires raw body - see server.js note
     .digest('hex');
 
   if (webhookSignature !== expectedSignature) {
@@ -137,16 +149,16 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
 
   if (event === 'payment.captured') {
     const orderId = req.body.payload.payment.entity.order_id;
-    await Payment.update({ status: 'paid' }, { where: { razorpayOrderId: orderId } });
+    await Payment.findOneAndUpdate({ razorpayOrderId: orderId }, { status: 'paid' });
   } else if (event === 'payment.failed') {
     const orderId = req.body.payload.payment.entity.order_id;
-    await Payment.update({ status: 'failed' }, { where: { razorpayOrderId: orderId } });
+    await Payment.findOneAndUpdate({ razorpayOrderId: orderId }, { status: 'failed' });
   }
 
   res.json({ success: true });
 });
 
-// @desc    Record an offline payment (cash / bank transfer)
+// @desc    Record an offline payment (cash / bank transfer) - Section 7
 // @route   POST /api/admin/payments/offline
 // @access  Private/Admin
 const recordOfflinePayment = asyncHandler(async (req, res) => {
@@ -158,15 +170,15 @@ const recordOfflinePayment = asyncHandler(async (req, res) => {
   }
 
   const payment = await Payment.create({
-    studentId,
-    courseId,
-    batchId: batchId || null,
+    student: studentId,
+    course: courseId,
+    batch: batchId || undefined,
     amount,
     instalmentLabel,
     method,
     status: 'paid',
     receiptNumber: `ICAS-${Date.now()}`,
-    recordedById: req.user.id,
+    recordedBy: req.user._id,
     notes,
   });
 

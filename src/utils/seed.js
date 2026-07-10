@@ -1,6 +1,6 @@
 require('dotenv').config();
-const { connectDB } = require('../config/db');
-const { User } = require('../models');
+const connectDB = require('../config/db');
+const User = require('../models/User');
 
 const seed = async () => {
   await connectDB();
@@ -8,7 +8,7 @@ const seed = async () => {
   const email = process.env.SEED_ADMIN_EMAIL;
   const password = process.env.SEED_ADMIN_PASSWORD;
 
-  const existing = await User.findOne({ where: { email } });
+  const existing = await User.findOne({ email });
   if (existing) {
     console.log(`Admin user already exists: ${email}`);
     process.exit(0);

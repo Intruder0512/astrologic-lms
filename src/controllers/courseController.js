@@ -1,10 +1,11 @@
 const asyncHandler = require('express-async-handler');
-const { Op } = require('sequelize');
-const { Course, Batch, User } = require('../models');
+const Course = require('../models/Course');
+const Batch = require('../models/Batch');
 
 // @desc    List published courses with filters (Section 4.3)
 // @route   GET /api/courses
 // @access  Public
+// Query params: category, level, mode, language, instructor, certification, search, page, limit
 const getCourses = asyncHandler(async (req, res) => {
   const {
     category,
@@ -18,40 +19,32 @@ const getCourses = asyncHandler(async (req, res) => {
     limit = 12,
   } = req.query;
 
-  const where = { status: 'published' };
-  if (category) where.category = category;
-  if (level) where.level = level;
-  if (mode) where.mode = mode;
-  if (language) where.language = language;
-  if (certification === 'true') where.certificateOffered = true;
+  const filter = { status: 'published' };
+
+  if (category) filter.category = category;
+  if (level) filter.level = level;
+  if (mode) filter.mode = mode;
+  if (language) filter.language = language;
+  if (instructor) filter.instructors = instructor;
+  if (certification === 'true') filter.certificateOffered = true;
   if (search) {
-    where[Op.or] = [
-      { title: { [Op.like]: `%${search}%` } },
-      { shortDescription: { [Op.like]: `%${search}%` } },
+    filter.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { shortDescription: { $regex: search, $options: 'i' } },
     ];
   }
 
-  const include = [
-    {
-      model: User,
-      as: 'instructors',
-      attributes: ['id', 'name'],
-      through: { attributes: [] },
-      ...(instructor ? { where: { id: instructor } } : {}),
-    },
-  ];
+  const skip = (Number(page) - 1) * Number(limit);
 
-  const offset = (Number(page) - 1) * Number(limit);
-
-  const { rows: courses, count: total } = await Course.findAndCountAll({
-    where,
-    include,
-    attributes: { exclude: ['syllabus', 'faqs', 'description'] },
-    order: [['createdAt', 'DESC']],
-    offset,
-    limit: Number(limit),
-    distinct: true,
-  });
+  const [courses, total] = await Promise.all([
+    Course.find(filter)
+      .populate('instructors', 'name')
+      .select('-syllabus -faqs -description') // keep catalogue payload light
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit)),
+    Course.countDocuments(filter),
+  ]);
 
   res.json({
     success: true,
@@ -67,20 +60,20 @@ const getCourses = asyncHandler(async (req, res) => {
 // @route   GET /api/courses/:slug
 // @access  Public
 const getCourseBySlug = asyncHandler(async (req, res) => {
-  const course = await Course.findOne({
-    where: { slug: req.params.slug, status: 'published' },
-    include: [{ model: User, as: 'instructors', attributes: ['id', 'name'], through: { attributes: [] } }],
-  });
+  const course = await Course.findOne({ slug: req.params.slug, status: 'published' }).populate(
+    'instructors',
+    'name'
+  );
 
   if (!course) {
     res.status(404);
     throw new Error('Course not found');
   }
 
-  const batches = await Batch.findAll({
-    where: { courseId: course.id, status: { [Op.in]: ['upcoming', 'ongoing'] } },
-    order: [['startDate', 'ASC']],
-  });
+  const batches = await Batch.find({
+    course: course._id,
+    status: { $in: ['upcoming', 'ongoing'] },
+  }).sort({ startDate: 1 });
 
   res.json({ success: true, course, batches });
 });
@@ -89,13 +82,7 @@ const getCourseBySlug = asyncHandler(async (req, res) => {
 // @route   POST /api/admin/courses
 // @access  Private/Admin
 const createCourse = asyncHandler(async (req, res) => {
-  const { instructorIds, ...courseData } = req.body;
-  const course = await Course.create(courseData);
-
-  if (instructorIds && instructorIds.length) {
-    await course.setInstructors(instructorIds);
-  }
-
+  const course = await Course.create(req.body);
   res.status(201).json({ success: true, course });
 });
 
@@ -103,34 +90,33 @@ const createCourse = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/courses/:id
 // @access  Private/Admin
 const updateCourse = asyncHandler(async (req, res) => {
-  const { instructorIds, ...courseData } = req.body;
-  const course = await Course.findByPk(req.params.id);
+  const course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
   if (!course) {
     res.status(404);
     throw new Error('Course not found');
-  }
-
-  await course.update(courseData);
-  if (instructorIds) {
-    await course.setInstructors(instructorIds);
   }
 
   res.json({ success: true, course });
 });
 
-// @desc    Archive a course (soft delete)
+// @desc    Delete (archive) a course - soft delete preferred over hard delete
 // @route   DELETE /api/admin/courses/:id
 // @access  Private/Admin
 const archiveCourse = asyncHandler(async (req, res) => {
-  const course = await Course.findByPk(req.params.id);
+  const course = await Course.findByIdAndUpdate(
+    req.params.id,
+    { status: 'archived' },
+    { new: true }
+  );
+
   if (!course) {
     res.status(404);
     throw new Error('Course not found');
   }
-
-  course.status = 'archived';
-  await course.save();
 
   res.json({ success: true, message: 'Course archived', course });
 });
@@ -139,10 +125,7 @@ const archiveCourse = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/courses
 // @access  Private/Admin
 const getAllCoursesAdmin = asyncHandler(async (req, res) => {
-  const courses = await Course.findAll({
-    include: [{ model: User, as: 'instructors', attributes: ['id', 'name'], through: { attributes: [] } }],
-    order: [['createdAt', 'DESC']],
-  });
+  const courses = await Course.find().populate('instructors', 'name').sort({ createdAt: -1 });
   res.json({ success: true, count: courses.length, courses });
 });
 
