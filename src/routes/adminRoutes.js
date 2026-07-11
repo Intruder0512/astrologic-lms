@@ -24,6 +24,15 @@ const {
   getChapterCalendar,
 } = require('../controllers/adminController');
 
+const {
+  getAllFacultyAdmin,
+  createFaculty,
+  updateFaculty,
+  deleteFaculty,
+} = require('../controllers/facultyController');
+
+const uploadFacultyPhoto = require('../middleware/uploadFacultyPhoto');
+
 const router = express.Router();
 
 // All admin routes require authentication + admin role
@@ -60,5 +69,11 @@ router.put('/instructors/:id', updateInstructor);
 
 // Chapter-wide calendar (Phase 2)
 router.get('/calendar', getChapterCalendar);
+
+// Faculty profiles (draft/published, same pattern as courses)
+router.get('/faculty', getAllFacultyAdmin);
+router.post('/faculty', uploadFacultyPhoto.single('photo'), createFaculty);
+router.put('/faculty/:id', uploadFacultyPhoto.single('photo'), updateFaculty);
+router.delete('/faculty/:id', deleteFaculty);
 
 module.exports = router;

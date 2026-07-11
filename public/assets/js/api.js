@@ -65,6 +65,9 @@ const API = {
   getCourse(slug) {
     return this.request(`/courses/${slug}`);
   },
+  getFaculty() {
+    return this.request('/faculty');
+  },
   submitEnquiry(payload) {
     return this.request('/enquiries', { method: 'POST', body: payload });
   },
@@ -168,5 +171,17 @@ const API = {
   },
   allocateBatch(id, payload) {
     return this.request(`/admin/students/${id}/allocate-batch`, { method: 'PUT', body: payload, auth: true });
+  },
+  getAdminFaculty() {
+    return this.request('/admin/faculty', { auth: true });
+  },
+  createFacultyProfile(formData) {
+    return this.request('/admin/faculty', { method: 'POST', body: formData, auth: true, isForm: true });
+  },
+  updateFacultyProfile(id, formData) {
+    return this.request(`/admin/faculty/${id}`, { method: 'PUT', body: formData, auth: true, isForm: true });
+  },
+  deleteFacultyProfile(id) {
+    return this.request(`/admin/faculty/${id}`, { method: 'DELETE', auth: true });
   },
 };

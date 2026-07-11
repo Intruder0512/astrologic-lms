@@ -73,6 +73,46 @@ function courseCardHtml(course) {
   `;
 }
 
+// ---- Faculty rendering (shared by index.html and faculty.html) ----
+function facultyCardHtml(f) {
+  const initial = (f.name || '?').trim().charAt(0).toUpperCase();
+  const photo = f.photoUrl
+    ? `<img src="${f.photoUrl}" alt="${escapeHtml(f.name)}" class="faculty-photo">`
+    : `<div class="faculty-photo-placeholder">${escapeHtml(initial)}</div>`;
+
+  const tags = [...(f.specializations || [])].slice(0, 4);
+
+  return `
+    <div class="faculty-card">
+      ${photo}
+      <h3 style="margin-bottom:0.2em;">${escapeHtml(f.name)}</h3>
+      ${f.designation ? `<div class="faculty-designation">${escapeHtml(f.designation)}</div>` : ''}
+      ${f.experienceYears ? `<p style="font-size:0.85rem;margin-bottom:0.5em;">${escapeHtml(String(f.experienceYears))}+ years experience</p>` : ''}
+      <p style="font-size:0.9rem;">${escapeHtml(f.bio || '')}</p>
+      ${tags.length ? `<div class="faculty-tags">${tags.map((t) => `<span class="faculty-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+    </div>
+  `;
+}
+
+async function loadFacultyInto(targetSelector, limit) {
+  const target = document.querySelector(targetSelector);
+  if (!target) return;
+
+  try {
+    const data = await API.getFaculty();
+    let faculty = data.faculty || [];
+    if (limit) faculty = faculty.slice(0, limit);
+
+    if (!faculty.length) {
+      target.innerHTML = `<div class="course-empty">Faculty profiles are being added — check back soon.</div>`;
+      return;
+    }
+    target.innerHTML = faculty.map(facultyCardHtml).join('');
+  } catch (err) {
+    target.innerHTML = `<div class="course-empty">Faculty profiles are temporarily unavailable. Please refresh in a moment.</div>`;
+  }
+}
+
 async function loadCoursesInto(targetSelector, params = {}, limit) {
   const target = document.querySelector(targetSelector);
   if (!target) return;

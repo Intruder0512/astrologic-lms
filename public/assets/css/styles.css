@@ -454,3 +454,12 @@ p { margin: 0 0 var(--space-2); color: var(--ink-soft); }
 .metric .num { font-family: var(--font-display); font-size: 1.8rem; color: var(--burgundy); }
 .metric .label { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; color: var(--ink-faint); }
 .list-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6em 0; border-bottom: 1px dotted var(--line); font-size: 0.88rem; gap: var(--space-2); }
+
+/* ---------- Faculty cards ---------- */
+.faculty-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-3); }
+.faculty-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-3); text-align: center; }
+.faculty-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto var(--space-2); border: 3px solid var(--cream-dim); }
+.faculty-photo-placeholder { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto var(--space-2); background: var(--cream-dim); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 2.2rem; color: var(--burgundy); }
+.faculty-designation { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--burgundy); margin-bottom: var(--space-1); }
+.faculty-tags { display: flex; flex-wrap: wrap; gap: 0.4em; justify-content: center; margin-top: var(--space-2); }
+.faculty-tag { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; background: var(--cream-dim); color: var(--ink-soft); padding: 0.3em 0.7em; border-radius: 100px; }

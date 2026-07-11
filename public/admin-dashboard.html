@@ -36,6 +36,9 @@
     <ul class="nav-links">
       <li><a href="/index.html">Home</a></li>
       <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/faculty.html">Faculty</a></li>
+      <li><a href="/astrology.html">About Astrology</a></li>
+      <li><a href="/gallery.html">Gallery</a></li>
       <li><a href="/calendar.html">Calendar</a></li>
       <li><a href="/about.html">Who We Are</a></li>
       <li><a href="/contact.html">Contact</a></li>
@@ -76,6 +79,7 @@
     <div class="container">
       <div class="tabs">
         <button class="tab-btn active" data-tab="courses">Courses</button>
+        <button class="tab-btn" data-tab="faculty">Faculty</button>
         <button class="tab-btn" data-tab="instructors">Instructors</button>
         <button class="tab-btn" data-tab="batches">Batches</button>
         <button class="tab-btn" data-tab="students">Admissions</button>
@@ -133,6 +137,44 @@
           <div class="dash-card">
             <h3>All Courses</h3>
             <div id="courses-list"><p class="form-note">Loading…</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty tab -->
+      <div class="tab-panel" id="tab-faculty">
+        <div class="dash-grid">
+          <div class="dash-card">
+            <h3 id="faculty-form-heading">Add a Faculty Profile</h3>
+            <div id="faculty-message" class="form-message"></div>
+            <form id="faculty-form">
+              <input type="hidden" id="f-editing-id" value="">
+              <div class="field"><label for="f-name">Full Name</label><input type="text" id="f-name" required></div>
+              <div class="field"><label for="f-designation">Designation</label><input type="text" id="f-designation" placeholder="e.g. Centre Coordinator & Lead Faculty"></div>
+              <div class="field"><label for="f-photo">Photo</label><input type="file" id="f-photo" accept=".jpg,.jpeg,.png,.webp"></div>
+              <div class="field"><label for="f-bio">Bio</label><textarea id="f-bio" rows="3" required placeholder="Background, teaching style, what students can expect"></textarea></div>
+              <div class="field-row">
+                <div class="field"><label for="f-experience">Years of Experience</label><input type="number" id="f-experience" min="0"></div>
+                <div class="field"><label for="f-order">Display Order</label><input type="number" id="f-order" value="0"></div>
+              </div>
+              <div class="field"><label for="f-specializations">Specializations (comma-separated)</label><input type="text" id="f-specializations" placeholder="e.g. Vedic Astrology, Dasha Analysis"></div>
+              <div class="field"><label for="f-qualifications">Qualifications (comma-separated)</label><input type="text" id="f-qualifications" placeholder="e.g. ICAS Jyotish Acharya"></div>
+              <div class="field"><label for="f-languages">Languages (comma-separated)</label><input type="text" id="f-languages" placeholder="e.g. English, Hindi"></div>
+              <div class="field-row">
+                <div class="field"><label for="f-email">Email (optional)</label><input type="email" id="f-email"></div>
+                <div class="field"><label for="f-phone">Phone (optional)</label><input type="tel" id="f-phone"></div>
+              </div>
+              <div class="field">
+                <label><input type="checkbox" id="f-publish" style="width:auto;display:inline-block;margin-right:0.5em;">Publish immediately (visible on the public site)</label>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block" id="faculty-submit-btn">Add Faculty Profile</button>
+              <button type="button" class="btn btn-outline-light btn-block" id="faculty-cancel-edit-btn" style="display:none;margin-top:0.5em;">Cancel Editing</button>
+            </form>
+          </div>
+
+          <div class="dash-card">
+            <h3>All Faculty Profiles</h3>
+            <div id="faculty-list"><p class="form-note">Loading…</p></div>
           </div>
         </div>
       </div>

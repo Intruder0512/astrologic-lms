@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Log In — ICAS</title>
+<title>Faculty — ICAS</title>
+<meta name="description" content="Meet the faculty teaching Jyotish Praveena and Jyotish Visharada at ICAS, Purushottamanand Ashram, Lucknow.">
 <link rel="icon" href="/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,10 +22,9 @@
     <ul class="nav-links">
       <li><a href="/index.html">Home</a></li>
       <li><a href="/courses.html">Courses</a></li>
-      <li><a href="/faculty.html">Faculty</a></li>
+      <li><a href="/faculty.html" class="active">Faculty</a></li>
       <li><a href="/astrology.html">About Astrology</a></li>
       <li><a href="/gallery.html">Gallery</a></li>
-      <li><a href="/calendar.html">Calendar</a></li>
       <li><a href="/about.html">Who We Are</a></li>
       <li><a href="/contact.html">Contact</a></li>
     </ul>
@@ -33,27 +33,21 @@
   </nav>
 </header>
 
-<section class="section" style="padding-top:var(--space-5); display:flex; justify-content:center;">
-  <div class="container" style="max-width:440px;">
-    <div class="text-center" style="margin-bottom:var(--space-4);">
-      <span class="eyebrow">Student &amp; Admin Login</span>
-      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Welcome Back</h1>
+<section class="hero" style="padding: var(--space-5) 0;">
+  <div class="hero-inner" style="grid-template-columns:1fr;">
+    <div>
+      <span class="eyebrow">Meet the Team</span>
+      <h1 style="font-size:clamp(2rem, 4vw, 3rem);">Faculty</h1>
+      <p class="lede">The instructors behind Jyotish Praveena and Jyotish Visharada — their background, specialisations, and how to reach them.</p>
     </div>
+  </div>
+</section>
 
-    <div class="form-panel" style="max-width:none;">
-      <div id="form-message" class="form-message"></div>
-      <form id="login-form">
-        <div class="field">
-          <label for="email">Email</label>
-          <input type="email" id="email" required>
-        </div>
-        <div class="field">
-          <label for="password">Password</label>
-          <input type="password" id="password" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Log In</button>
-        <p class="form-note text-center">New here? <a href="/register.html" style="color:var(--vermillion);">Create a student account</a></p>
-      </form>
+<section class="section">
+  <div class="container">
+    <div class="faculty-grid" data-faculty-target>
+      <div class="skeleton" style="height:280px;"></div>
+      <div class="skeleton" style="height:280px;"></div>
     </div>
   </div>
 </section>
@@ -68,6 +62,6 @@
 
 <script src="/assets/js/api.js"></script>
 <script src="/assets/js/main.js"></script>
-<script src="/assets/js/page-login.js"></script>
+<script src="/assets/js/page-faculty.js"></script>
 </body>
 </html>
