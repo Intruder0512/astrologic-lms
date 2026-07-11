@@ -33,6 +33,10 @@ connectDB();
 // this is the strict default and nothing needed loosening for it. Styles
 // and fonts need explicit allowances for the two things this design uses:
 // inline style="" attributes throughout the markup, and Google Fonts.
+// frame-src allows the Google Maps embed on the contact page - without it,
+// the browser silently blocks the iframe (no console-visible breakage on
+// the page itself, just an empty box), since frame-src falls back to
+// default-src 'self' when not set explicitly.
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -43,6 +47,7 @@ app.use(
         imgSrc: ["'self'", 'data:'],
         scriptSrc: ["'self'"],
         connectSrc: ["'self'"],
+        frameSrc: ["'self'", 'https://www.google.com'],
       },
     },
   })
