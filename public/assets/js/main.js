@@ -27,7 +27,7 @@ function renderAuthState() {
     const dashboardUrls = { instructor: '/teacher-dashboard.html', admin: '/admin-dashboard.html', student: '/dashboard.html' };
     const dashboardUrl = dashboardUrls[user?.role] || '/dashboard.html';
     slot.innerHTML = `
-      <a href="${dashboardUrl}" class="btn btn-outline-dark">${escapeHtml(user?.name?.split(' ')[0] || 'My Account')}</a>
+      <a href="${dashboardUrl}" class="btn btn-outline-light">${escapeHtml(user?.name?.split(' ')[0] || 'My Account')}</a>
       <button class="btn btn-primary" id="logout-btn" type="button">Log Out</button>
     `;
     document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -36,7 +36,7 @@ function renderAuthState() {
     });
   } else {
     slot.innerHTML = `
-      <a href="/login.html" class="btn btn-outline-dark">Log In</a>
+      <a href="/login.html" class="btn btn-outline-red">Log In</a>
       <a href="/register.html" class="btn btn-primary">Register</a>
     `;
   }
