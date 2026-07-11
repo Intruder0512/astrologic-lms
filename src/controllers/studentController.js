@@ -138,8 +138,12 @@ const registerForCourse = asyncHandler(async (req, res) => {
 // @access  Private/Student
 const getMyDashboard = asyncHandler(async (req, res) => {
   const student = await Student.findOne({ user: req.user._id })
-    .populate('enrollments.course', 'title slug thumbnailUrl fee')
-    .populate('enrollments.batch', 'batchName startDate mode classroomLocation');
+    .populate({
+      path: 'enrollments.course',
+      select: 'title slug thumbnailUrl fee instructors',
+      populate: { path: 'instructors', select: 'name email' },
+    })
+    .populate('enrollments.batch', 'batchName startDate mode classroomLocation instructor');
 
   if (!student) {
     res.status(404);

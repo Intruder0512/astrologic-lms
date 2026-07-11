@@ -6,6 +6,48 @@ function escT(s) {
   return d.innerHTML;
 }
 
+async function loadTeacherStats() {
+  const grid = document.getElementById('teacher-metrics');
+  try {
+    const data = await API.getTeacherStats();
+    const s = data.stats;
+    grid.innerHTML = `
+      <div class="metric"><div class="num">${s.totalCourses}</div><div class="label">Courses</div></div>
+      <div class="metric"><div class="num">${s.totalClasses}</div><div class="label">Total Classes</div></div>
+      <div class="metric"><div class="num">${s.upcomingClasses}</div><div class="label">Upcoming</div></div>
+      <div class="metric"><div class="num">${s.totalStudents}</div><div class="label">Students</div></div>
+      <div class="metric"><div class="num">${s.attendanceRate != null ? s.attendanceRate + '%' : '—'}</div><div class="label">Avg Attendance</div></div>
+    `;
+  } catch (err) {
+    grid.innerHTML = `<p class="form-note">Could not load stats: ${escT(err.message)}</p>`;
+  }
+}
+
+async function loadMyStudents() {
+  const listEl = document.getElementById('my-students-list');
+  try {
+    const data = await API.getTeacherStudents();
+    const students = data.students || [];
+    listEl.innerHTML = students.length
+      ? students
+          .map(
+            (s) => `
+        <div class="list-row">
+          <div>
+            <strong>${escT(s.name)}</strong>
+            <div class="form-note" style="margin:0.1em 0 0;">${escT(s.course)} · ${escT(s.batch)}</div>
+          </div>
+          <span class="badge-diamond">${s.attendancePercent != null ? s.attendancePercent + '% (' + s.attendancePresent + '/' + s.attendanceTotal + ')' : 'No classes yet'}</span>
+        </div>
+      `
+          )
+          .join('')
+      : '<p class="form-note">No students in your batches yet.</p>';
+  } catch (err) {
+    listEl.innerHTML = `<p class="form-note">Could not load students: ${escT(err.message)}</p>`;
+  }
+}
+
 function toLocalInputValue(date) {
   const d = new Date(date);
   const pad = (n) => String(n).padStart(2, '0');
@@ -133,6 +175,8 @@ async function loadUpcomingClasses() {
             try {
               await API.recordAttendance(classId, attendance);
               alert('Attendance saved.');
+              await loadMyStudents();
+              await loadTeacherStats();
             } catch (err) {
               alert(err.message || 'Could not save attendance');
             }
@@ -164,6 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadMyCourses();
   loadUpcomingClasses();
+  loadTeacherStats();
+  loadMyStudents();
 
   document.getElementById('s-course').addEventListener('change', (e) => loadBatchesForCourse(e.target.value));
 
@@ -189,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
       msg.className = 'form-message success';
       e.target.reset();
       await loadUpcomingClasses();
+      await loadTeacherStats();
     } catch (err) {
       msg.textContent = err.message || 'Could not schedule class.';
       msg.className = 'form-message error';

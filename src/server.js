@@ -20,6 +20,11 @@ const teacherRoutes = require('./routes/teacherRoutes');
 
 const app = express();
 
+// Hostinger (and most managed hosts) sit behind a reverse proxy that sets
+// X-Forwarded-For. Without this, express-rate-limit can't reliably identify
+// clients and logs a validation warning on every rate-limited request.
+app.set('trust proxy', 1);
+
 connectDB();
 
 // Scripts stay locked to same-origin (script-src 'self') - every page's JS

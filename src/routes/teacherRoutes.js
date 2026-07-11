@@ -17,11 +17,17 @@ const {
   getLiveClassRoster,
   recordAttendance,
   postAnnouncement,
+  getMyStats,
+  getMyStudents,
 } = require('../controllers/teacherController');
 
 const router = express.Router();
 
 router.use(protect, authorize('instructor'));
+
+// Dashboard summary
+router.get('/stats', getMyStats);
+router.get('/students', getMyStudents);
 
 // Courses & batches
 router.get('/courses', getMyCourses);

@@ -57,17 +57,19 @@ function renderDashboard(data) {
     enrollEl.innerHTML = '<p class="form-note">You haven\'t registered for a course yet.</p>';
   } else {
     enrollEl.innerHTML = data.enrollments
-      .map(
-        (e) => `
+      .map((e) => {
+        const teacherNames = (e.course?.instructors || []).map((i) => i.name).filter(Boolean);
+        return `
       <div class="enrollment-row">
         <div>
           <strong>${escDash(e.course?.title || 'Course')}</strong>
           <div class="form-note" style="margin:0.2em 0 0;">${e.batch ? escDash(e.batch.batchName) : 'No batch allocated yet'}</div>
+          <div class="form-note" style="margin:0.1em 0 0;">${teacherNames.length ? 'Teacher: ' + escDash(teacherNames.join(', ')) : 'Teacher not yet assigned'}</div>
         </div>
         <span class="status-pill status-${escDash(e.status)}">${escDash(e.status)}</span>
       </div>
-    `
-      )
+    `;
+      })
       .join('');
   }
 

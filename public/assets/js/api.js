@@ -125,6 +125,12 @@ const API = {
   postAnnouncement(payload) {
     return this.request('/teacher/announcements', { method: 'POST', body: payload, auth: true });
   },
+  getTeacherStats() {
+    return this.request('/teacher/stats', { auth: true });
+  },
+  getTeacherStudents() {
+    return this.request('/teacher/students', { auth: true });
+  },
 
   // ---- Student announcements ----
   getMyAnnouncements() {

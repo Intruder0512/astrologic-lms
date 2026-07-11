@@ -396,6 +396,107 @@ const postAnnouncement = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, announcement, notifiedStudents: validStudents.length });
 });
 
+// @desc    Summary stats for the instructor's own dashboard - class counts,
+//          student counts, attendance rate
+// @route   GET /api/teacher/stats
+// @access  Private/Instructor
+const getMyStats = asyncHandler(async (req, res) => {
+  const courses = await Course.find({ instructors: req.user._id });
+  const courseIds = courses.map((c) => c._id);
+
+  const batches = await Batch.find({ course: { $in: courseIds } });
+  const batchIds = batches.map((b) => b._id);
+
+  const liveClasses = await LiveClass.find({ instructor: req.user._id });
+  const completedClasses = liveClasses.filter((c) => c.status === 'completed');
+  const upcomingClasses = liveClasses.filter(
+    (c) => c.status !== 'cancelled' && c.status !== 'completed' && new Date(c.scheduledStart) >= new Date()
+  );
+
+  const students = batchIds.length
+    ? await Student.find({
+        'enrollments.batch': { $in: batchIds },
+        admissionStatus: { $in: ['approved', 'batch_allocated'] },
+      })
+    : [];
+
+  let totalMarked = 0;
+  let totalPresent = 0;
+  completedClasses.forEach((c) => {
+    c.attendance.forEach((a) => {
+      totalMarked++;
+      if (a.present) totalPresent++;
+    });
+  });
+  const attendanceRate = totalMarked ? Math.round((totalPresent / totalMarked) * 100) : null;
+
+  res.json({
+    success: true,
+    stats: {
+      totalCourses: courses.length,
+      totalClasses: liveClasses.length,
+      upcomingClasses: upcomingClasses.length,
+      completedClasses: completedClasses.length,
+      totalStudents: students.length,
+      attendanceRate, // percentage, or null if no attendance recorded yet
+    },
+  });
+});
+
+// @desc    All students across this instructor's batches, with per-student
+//          attendance history
+// @route   GET /api/teacher/students
+// @access  Private/Instructor
+const getMyStudents = asyncHandler(async (req, res) => {
+  const courses = await Course.find({ instructors: req.user._id });
+  const courseIds = courses.map((c) => c._id);
+
+  const batches = await Batch.find({ course: { $in: courseIds } });
+  const batchIds = batches.map((b) => b._id);
+
+  if (!batchIds.length) {
+    return res.json({ success: true, count: 0, students: [] });
+  }
+
+  const students = await Student.find({
+    'enrollments.batch': { $in: batchIds },
+    admissionStatus: { $in: ['approved', 'batch_allocated'] },
+  }).populate('user', 'name email phone');
+
+  const completedClasses = await LiveClass.find({ instructor: req.user._id, status: 'completed' });
+
+  const result = students.map((s) => {
+    const enrollment = s.enrollments.find((e) => batchIds.some((id) => String(id) === String(e.batch)));
+    const batch = batches.find((b) => String(b._id) === String(enrollment?.batch));
+    const course = courses.find((c) => String(c._id) === String(enrollment?.course));
+
+    let present = 0;
+    let total = 0;
+    completedClasses.forEach((lc) => {
+      if (String(lc.batch) !== String(enrollment?.batch)) return;
+      const entry = lc.attendance.find((a) => String(a.student) === String(s._id));
+      if (entry) {
+        total++;
+        if (entry.present) present++;
+      }
+    });
+
+    return {
+      studentId: s._id,
+      name: s.user?.name,
+      email: s.user?.email,
+      phone: s.user?.phone,
+      course: course?.title,
+      batch: batch?.batchName,
+      attendancePresent: present,
+      attendanceTotal: total,
+      attendancePercent: total ? Math.round((present / total) * 100) : null,
+    };
+  });
+
+  res.json({ success: true, count: result.length, students: result });
+});
+
 module.exports = {
   getMyCourses,
   getCourseBatches,
@@ -413,4 +514,6 @@ module.exports = {
   getLiveClassRoster,
   recordAttendance,
   postAnnouncement,
+  getMyStats,
+  getMyStudents,
 };

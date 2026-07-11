@@ -59,7 +59,18 @@
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" style="padding-top:var(--space-3);">
+    <div class="container">
+      <div class="dash-card">
+        <h3>Overview</h3>
+        <div class="metric-grid" id="teacher-metrics">
+          <div class="metric"><div class="num">—</div><div class="label">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
     <div class="container dash-grid">
       <div>
         <div class="dash-card">
@@ -96,6 +107,11 @@
             <button type="submit" class="btn btn-primary btn-block" id="schedule-btn">Schedule Class</button>
             <p class="form-note">Enrolled students in the selected batch are emailed automatically with the class details.</p>
           </form>
+        </div>
+
+        <div class="dash-card">
+          <h3>My Students</h3>
+          <div id="my-students-list"><p class="form-note">Loading…</p></div>
         </div>
       </div>
 
