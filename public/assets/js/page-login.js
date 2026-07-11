@@ -1,5 +1,5 @@
 function redirectForRole(role) {
-  const destinations = { instructor: '/teacher-dashboard.html', admin: '/dashboard.html', student: '/dashboard.html' };
+  const destinations = { instructor: '/teacher-dashboard.html', admin: '/admin-dashboard.html', student: '/dashboard.html' };
   window.location.href = destinations[role] || '/dashboard.html';
 }
 

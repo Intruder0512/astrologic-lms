@@ -75,6 +75,10 @@ const attemptConnect = async () => {
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
     console.log(`MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
     retryDelay = INITIAL_RETRY_DELAY_MS; // reset backoff after a successful connect
+
+    // Auto-provision the first admin account if SEED_ADMIN_EMAIL/PASSWORD
+    // are set and none exists yet - see src/utils/autoSeedAdmin.js
+    require('../utils/autoSeedAdmin')();
   } catch (err) {
     console.error(`MongoDB connection error: ${err.message}`);
     scheduleRetry();

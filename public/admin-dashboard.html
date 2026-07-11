@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — ICAS</title>
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+<style>
+  .dash-grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); align-items:start; }
+  @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+  .dash-card { background: rgba(16,20,46,0.6); backdrop-filter: blur(10px); border:1px solid var(--line-glow); border-radius: var(--radius-md); padding: var(--space-3); margin-bottom: var(--space-3); }
+  .metric-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: var(--space-2); }
+  .metric { text-align:center; padding: var(--space-2); border:1px solid var(--line-soft); border-radius: var(--radius-sm); }
+  .metric .num { font-family: var(--font-display); font-size: 1.8rem; background: linear-gradient(135deg, var(--violet-bright), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .metric .label { font-family: var(--font-mono); font-size: 0.65rem; text-transform:uppercase; color: var(--text-dim); }
+  .list-row { display:flex; justify-content:space-between; align-items:center; padding: 0.6em 0; border-bottom: 1px dotted var(--line-soft); font-size:0.88rem; gap: var(--space-2); }
+  .tabs { display:flex; gap: var(--space-1); margin-bottom: var(--space-3); flex-wrap:wrap; }
+  .tab-btn { font-family: var(--font-mono); font-size:0.75rem; text-transform:uppercase; padding:0.6em 1.1em; border-radius: var(--radius-sm); border:1px solid var(--line-glow); background:transparent; color: var(--text-dim); cursor:pointer; }
+  .tab-btn.active { background: var(--violet); color:#fff; border-color: var(--violet); }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="Indian Council of Astrological Sciences emblem">
+      <span class="nav-brand-text">ICAS<small>Vedic Astrology Courses</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/calendar.html">Calendar</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<div id="gate-message" class="section" style="display:none;">
+  <div class="container text-center">
+    <span class="eyebrow">Login Required</span>
+    <h2>Log in as an admin to view this page.</h2>
+    <a href="/login.html" class="btn btn-primary">Log In</a>
+  </div>
+</div>
+
+<div id="dash-content" style="display:none;">
+  <section class="section" style="padding-bottom:0;">
+    <div class="container">
+      <span class="eyebrow">Admin Dashboard</span>
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Welcome, <span id="dash-name">Admin</span>.</h1>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:var(--space-3);">
+    <div class="container">
+      <div class="dash-card">
+        <h3>Overview</h3>
+        <div class="metric-grid" id="metrics-grid">
+          <div class="metric"><div class="num">—</div><div class="label">New Enquiries</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="courses">Courses</button>
+        <button class="tab-btn" data-tab="instructors">Instructors</button>
+        <button class="tab-btn" data-tab="batches">Batches</button>
+        <button class="tab-btn" data-tab="students">Admissions</button>
+      </div>
+
+      <!-- Courses tab -->
+      <div class="tab-panel active" id="tab-courses">
+        <div class="dash-grid">
+          <div class="dash-card">
+            <h3>Create a Course</h3>
+            <div id="course-message" class="form-message"></div>
+            <form id="course-form">
+              <div class="field"><label for="c-title">Title</label><input type="text" id="c-title" required></div>
+              <div class="field-row">
+                <div class="field"><label for="c-code">Course Code</label><input type="text" id="c-code" placeholder="e.g. JP-101" required></div>
+                <div class="field"><label for="c-category">Category</label>
+                  <select id="c-category" required>
+                    <option value="astrology">Astrology</option>
+                    <option value="vastu">Vastu</option>
+                    <option value="palmistry">Palmistry</option>
+                    <option value="nakshatra">Nakshatra</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label for="c-level">Level</label>
+                  <select id="c-level" required>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+                <div class="field"><label for="c-mode">Mode</label>
+                  <select id="c-mode" required>
+                    <option value="hybrid">Online & Classroom</option>
+                    <option value="online">Online Only</option>
+                    <option value="offline">Classroom Only</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field"><label for="c-short">Short Description</label><input type="text" id="c-short" maxlength="300" required></div>
+              <div class="field"><label for="c-desc">Full Description</label><textarea id="c-desc" rows="3" required></textarea></div>
+              <div class="field-row">
+                <div class="field"><label for="c-fee">Fee (₹)</label><input type="number" id="c-fee" min="0" required></div>
+                <div class="field"><label for="c-duration">Duration (weeks)</label><input type="number" id="c-duration" min="1"></div>
+              </div>
+              <div class="field">
+                <label><input type="checkbox" id="c-publish" checked style="width:auto;display:inline-block;margin-right:0.5em;">Publish immediately (visible on the public site)</label>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Create Course</button>
+            </form>
+          </div>
+
+          <div class="dash-card">
+            <h3>All Courses</h3>
+            <div id="courses-list"><p class="form-note">Loading…</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructors tab -->
+      <div class="tab-panel" id="tab-instructors">
+        <div class="dash-grid">
+          <div class="dash-card">
+            <h3>Create an Instructor Account</h3>
+            <div id="instructor-message" class="form-message"></div>
+            <form id="instructor-form">
+              <div class="field"><label for="i-name">Full Name</label><input type="text" id="i-name" required></div>
+              <div class="field"><label for="i-email">Email (their login)</label><input type="email" id="i-email" required></div>
+              <div class="field"><label for="i-password">Temporary Password</label><input type="text" id="i-password" required></div>
+              <div class="field"><label for="i-phone">Phone</label><input type="tel" id="i-phone"></div>
+              <div class="field"><label for="i-upn">Microsoft UPN (for Teams, optional for now)</label><input type="email" id="i-upn" placeholder="leave blank until Teams is set up"></div>
+              <button type="submit" class="btn btn-primary btn-block">Create Instructor</button>
+            </form>
+          </div>
+
+          <div class="dash-card">
+            <h3>Instructors</h3>
+            <div id="instructors-list"><p class="form-note">Loading…</p></div>
+            <p class="form-note">To assign an instructor to a course, use the course edit form (coming soon) or the API directly: <code>PUT /api/admin/courses/:id</code> with <code>{"instructorIds":["&lt;id&gt;"]}</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batches tab -->
+      <div class="tab-panel" id="tab-batches">
+        <div class="dash-grid">
+          <div class="dash-card">
+            <h3>Create a Batch</h3>
+            <div id="batch-message" class="form-message"></div>
+            <form id="batch-form">
+              <div class="field"><label for="b-course">Course</label><select id="b-course" required></select></div>
+              <div class="field"><label for="b-name">Batch Name</label><input type="text" id="b-name" placeholder="e.g. Aug 2026 - Weekend Batch" required></div>
+              <div class="field-row">
+                <div class="field"><label for="b-mode">Mode</label>
+                  <select id="b-mode" required>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                  </select>
+                </div>
+                <div class="field"><label for="b-start">Start Date</label><input type="date" id="b-start" required></div>
+              </div>
+              <div class="field"><label for="b-capacity">Max Capacity</label><input type="number" id="b-capacity" value="30" min="1"></div>
+              <button type="submit" class="btn btn-primary btn-block">Create Batch</button>
+            </form>
+          </div>
+
+          <div class="dash-card">
+            <h3>Note</h3>
+            <p class="form-note">Once a batch exists, instructors assigned to that course can schedule live classes for it from their Teacher Dashboard. Students register for a course, then admin allocates them to a batch after admission approval (Admissions tab).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students / Admissions tab -->
+      <div class="tab-panel" id="tab-students">
+        <div class="dash-card">
+          <h3>Admission Applications</h3>
+          <div id="students-list"><p class="form-note">Loading…</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-admin-dashboard.js"></script>
+</body>
+</html>

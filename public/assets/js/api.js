@@ -130,4 +130,37 @@ const API = {
   getMyAnnouncements() {
     return this.request('/students/me/announcements', { auth: true });
   },
+
+  // ---- Admin ----
+  getAdminDashboard() {
+    return this.request('/admin/dashboard', { auth: true });
+  },
+  getAdminCourses() {
+    return this.request('/admin/courses', { auth: true });
+  },
+  createCourse(payload) {
+    return this.request('/admin/courses', { method: 'POST', body: payload, auth: true });
+  },
+  updateAdminCourse(id, payload) {
+    return this.request(`/admin/courses/${id}`, { method: 'PUT', body: payload, auth: true });
+  },
+  getAdminInstructors() {
+    return this.request('/admin/instructors', { auth: true });
+  },
+  createInstructor(payload) {
+    return this.request('/admin/instructors', { method: 'POST', body: payload, auth: true });
+  },
+  createAdminBatch(payload) {
+    return this.request('/admin/batches', { method: 'POST', body: payload, auth: true });
+  },
+  getAdminStudents(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/students${qs ? '?' + qs : ''}`, { auth: true });
+  },
+  reviewAdmission(id, payload) {
+    return this.request(`/admin/students/${id}/review`, { method: 'PUT', body: payload, auth: true });
+  },
+  allocateBatch(id, payload) {
+    return this.request(`/admin/students/${id}/allocate-batch`, { method: 'PUT', body: payload, auth: true });
+  },
 };

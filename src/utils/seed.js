@@ -16,7 +16,7 @@ const seed = async () => {
   }
 
   await User.create({
-    name: 'ICAS Lucknow-III Admin',
+    name: 'ICAS Admin',
     email,
     password,
     role: 'admin',

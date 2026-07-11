@@ -27,8 +27,8 @@ const createEnquiry = asyncHandler(async (req, res) => {
   if (email) {
     await sendEmail({
       to: email,
-      subject: 'Thank you for your enquiry - ICAS Lucknow-III',
-      html: `<p>Dear ${name},</p><p>Thank you for reaching out to ICAS Lucknow-III.
+      subject: 'Thank you for your enquiry - ICAS',
+      html: `<p>Dear ${name},</p><p>Thank you for reaching out to ICAS.
         Our counselling team will contact you shortly.</p>`,
     });
   }

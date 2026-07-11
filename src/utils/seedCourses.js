@@ -1,4 +1,4 @@
-// Seeds the course catalogue for ICAS Lucknow-III (Purushottamanand Ashram).
+// Seeds the course catalogue for ICAS (Purushottamanand Ashram).
 // IMPORTANT: per the official ICAS chapter registry (icasindia.org/ICAS/Centres.html),
 // this chapter is registered to teach ONLY Jyotish Praveena and Jyotish Visharada,
 // both Online and Direct Classroom. Do not add Vastu, Nakshatra, Hasta Rekha, Nadi,

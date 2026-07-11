@@ -1,6 +1,6 @@
-# ICAS Lucknow-III — Website & Backend (Phase 1 + Phase 2)
+# ICAS — Website & Backend (Phase 1 + Phase 2)
 
-Full-stack Node.js/Express + MongoDB app for **ICAS Lucknow-III**, a chapter
+Full-stack Node.js/Express + MongoDB app for **ICAS**, a chapter
 of the Indian Council of Astrological Sciences based at Purushottamanand
 Ashram, Iradat Nagar, Hasanganj, Lucknow. Covers **Section 15, Phase 1**
 (public website + admissions/enquiries/payments) and now **Phase 2**: course

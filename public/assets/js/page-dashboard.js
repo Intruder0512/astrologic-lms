@@ -14,7 +14,7 @@ async function initDashboard() {
   }
   const user = API.getUser();
   if (user?.role === 'admin') {
-    document.getElementById('admin-message').style.display = 'block';
+    window.location.href = '/admin-dashboard.html';
     return;
   }
 

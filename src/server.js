@@ -82,7 +82,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'ICAS Lucknow-III API is running',
+    message: 'ICAS API is running',
     phase: 2,
     database: isDbConnected() ? 'connected' : 'disconnected',
   });
