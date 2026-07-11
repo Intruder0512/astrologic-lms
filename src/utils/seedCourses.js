@@ -23,6 +23,27 @@ const courses = [
       'Interpret basic planetary aspects (drishti) and common yogas',
       'Apply foundational principles taught in classical Jyotish texts',
     ],
+    eligibility: 'None — this is the entry-level course. Basic literacy and an interest in the subject is all that\'s required.',
+    requiredDocuments: ['Photo', 'ID proof', 'Address proof'],
+    syllabus: [
+      {
+        moduleTitle: 'Module 1: Foundations',
+        topics: ['The zodiac and the twelve rashis', 'Introduction to the nine grahas', 'The twelve bhavas (houses)', 'Reading a basic kundli'],
+      },
+      {
+        moduleTitle: 'Module 2: Planetary Relationships',
+        topics: ['Planetary friendships and enmities', 'Exaltation and debilitation', 'Basic drishti (aspects)', 'Introduction to yogas'],
+      },
+      {
+        moduleTitle: 'Module 3: Practical Chart Reading',
+        topics: ['Case study charts', 'Common beginner mistakes', 'Building a reading checklist', 'Preparing for the ICAS examination'],
+      },
+    ],
+    faqs: [
+      { question: 'Do I need any prior knowledge of astrology to join?', answer: 'No. Jyotish Praveena is designed for complete beginners and starts from first principles.' },
+      { question: 'Is the certificate recognised nationally?', answer: 'Yes — it is issued by the Indian Council of Astrological Sciences (Regd.), Chennai, the same body that certifies all ICAS chapters across India.' },
+      { question: 'Can I attend online if I don\'t live in Lucknow?', answer: 'Yes, this course runs both online and in our physical classroom at Purushottamanand Ashram — you can choose either when you register.' },
+    ],
     mode: 'hybrid',
     durationWeeks: 12,
     totalSessions: 24,
@@ -48,6 +69,30 @@ const courses = [
       'Read and apply principles from classical astrological texts',
     ],
     eligibility: 'Completion of Jyotish Praveena (ICAS) or equivalent foundational knowledge, subject to faculty assessment.',
+    requiredDocuments: ['Photo', 'ID proof', 'Jyotish Praveena certificate or equivalent'],
+    syllabus: [
+      {
+        moduleTitle: 'Module 1: Dasha Systems',
+        topics: ['Vimshottari Dasha in depth', 'Antardasha and pratyantardasha', 'Timing events with dasha analysis'],
+      },
+      {
+        moduleTitle: 'Module 2: Divisional Charts',
+        topics: ['Navamsa (D9) for marriage and dharma', 'Dashamsha (D10) for career', 'Cross-referencing rashi and varga charts'],
+      },
+      {
+        moduleTitle: 'Module 3: Applied Prediction',
+        topics: ['Career and profession analysis', 'Marriage compatibility basics', 'Health indicators in a chart', 'Case studies and live chart practice'],
+      },
+      {
+        moduleTitle: 'Module 4: Examination Preparation',
+        topics: ['Consolidating dasha + varga analysis', 'Mock chart readings', 'ICAS examination format and practice'],
+      },
+    ],
+    faqs: [
+      { question: 'What\'s the difference between Praveena and Visharada?', answer: 'Praveena teaches you to read a chart. Visharada teaches you to predict from it — timing systems, divisional charts, and structured analysis across career, marriage and health.' },
+      { question: 'Can I join without completing Praveena elsewhere?', answer: 'If you have equivalent foundational knowledge, our faculty can assess you directly — contact us before registering.' },
+      { question: 'How long until I receive my certificate after completing the course?', answer: 'Certificates are issued by ICAS national office after your examination results are processed, typically within a few weeks of the exam.' },
+    ],
     mode: 'hybrid',
     durationWeeks: 16,
     totalSessions: 32,
