@@ -16,6 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
       phone: document.getElementById('phone').value.trim(),
       whatsapp: document.getElementById('whatsapp').value.trim() || undefined,
       password: document.getElementById('password').value,
+      address: document.getElementById('address').value.trim() || undefined,
+      city: document.getElementById('city').value.trim() || undefined,
+      state: document.getElementById('state').value.trim() || undefined,
+      preferredStudyMode: document.getElementById('studyMode').value || undefined,
+      educationalQualification: document.getElementById('education').value || undefined,
+      occupation: document.getElementById('occupation').value || undefined,
+      preferredLanguage: document.getElementById('language').value || undefined,
+      priorAstrologyExperience: document.getElementById('interest').value.trim() || undefined,
     };
 
     btn.disabled = true;

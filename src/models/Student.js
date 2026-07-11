@@ -27,9 +27,25 @@ const studentSchema = new mongoose.Schema(
     city: String,
     state: String,
     pincode: String,
-    educationalQualification: String,
-    occupation: String,
-    priorAstrologyExperience: String,
+    educationalQualification: {
+      type: String,
+      enum: ['below_10th', '10th', '12th', 'graduate', 'post_graduate', 'doctorate', 'other'],
+    },
+    occupation: {
+      type: String,
+      enum: [
+        'salaried_private',
+        'salaried_government',
+        'business_self_employed',
+        'retired',
+        'homemaker',
+        'student',
+        'not_working',
+        'other',
+      ],
+    },
+    preferredStudyMode: { type: String, enum: ['online', 'offline', 'hybrid'] },
+    priorAstrologyExperience: String, // used as free-text "what interests you about astrology / about yourself"
     preferredLanguage: { type: String, enum: ['english', 'hindi', 'both'], default: 'english' },
 
     documents: [documentSchema],

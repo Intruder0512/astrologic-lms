@@ -18,6 +18,7 @@ const updateMyProfile = asyncHandler(async (req, res) => {
     'pincode',
     'educationalQualification',
     'occupation',
+    'preferredStudyMode',
     'priorAstrologyExperience',
     'preferredLanguage',
   ];

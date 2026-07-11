@@ -41,16 +41,17 @@
 </header>
 
 <section class="section" style="padding-top:var(--space-5); display:flex; justify-content:center;">
-  <div class="container" style="max-width:520px;">
+  <div class="container" style="max-width:680px;">
     <div class="text-center" style="margin-bottom:var(--space-4);">
-      <span class="eyebrow">Step One of Admission</span>
+      <span class="eyebrow">Admission Application</span>
       <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Create Your Student Account</h1>
-      <p>Registration is free. You'll pick a course, upload documents and pay from your dashboard afterward.</p>
+      <p>Tell us a bit about yourself — this helps our faculty place you in the right batch. You'll upload documents and pay the course fee from your dashboard afterward.</p>
     </div>
 
     <div class="form-panel" style="max-width:none;">
       <div id="form-message" class="form-message"></div>
       <form id="register-form">
+        <h3 style="margin-bottom:var(--space-2);">Account</h3>
         <div class="field">
           <label for="name">Full Name *</label>
           <input type="text" id="name" required>
@@ -61,18 +62,85 @@
         </div>
         <div class="field-row">
           <div class="field">
-            <label for="phone">Phone *</label>
+            <label for="phone">Phone Number *</label>
             <input type="tel" id="phone" required>
           </div>
           <div class="field">
-            <label for="whatsapp">WhatsApp</label>
-            <input type="tel" id="whatsapp">
+            <label for="whatsapp">WhatsApp Number</label>
+            <input type="tel" id="whatsapp" placeholder="If different from phone">
           </div>
         </div>
         <div class="field">
           <label for="password">Password *</label>
           <input type="password" id="password" minlength="6" required>
         </div>
+
+        <h3 style="margin:var(--space-3) 0 var(--space-2);">Address</h3>
+        <div class="field">
+          <label for="address">Address</label>
+          <input type="text" id="address" placeholder="House/street, locality">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="city">City</label>
+            <input type="text" id="city">
+          </div>
+          <div class="field">
+            <label for="state">State</label>
+            <input type="text" id="state">
+          </div>
+        </div>
+
+        <h3 style="margin:var(--space-3) 0 var(--space-2);">About You</h3>
+        <div class="field">
+          <label for="studyMode">Preferred Study Method</label>
+          <select id="studyMode">
+            <option value="">Select an option</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline (Classroom)</option>
+            <option value="hybrid">Either / Not Sure Yet</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="education">Educational Qualification</label>
+          <select id="education">
+            <option value="">Select an option</option>
+            <option value="below_10th">Below 10th</option>
+            <option value="10th">10th Pass</option>
+            <option value="12th">12th Pass</option>
+            <option value="graduate">Graduate</option>
+            <option value="post_graduate">Post Graduate</option>
+            <option value="doctorate">Doctorate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="occupation">Current Occupation</label>
+          <select id="occupation">
+            <option value="">Select an option</option>
+            <option value="salaried_private">Salaried — Private Sector</option>
+            <option value="salaried_government">Salaried — Government</option>
+            <option value="business_self_employed">Business / Self-Employed</option>
+            <option value="retired">Retired</option>
+            <option value="homemaker">Homemaker</option>
+            <option value="student">Student</option>
+            <option value="not_working">Not Currently Working</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="language">Preferred Language of Instruction</label>
+          <select id="language">
+            <option value="english">English</option>
+            <option value="hindi">Hindi</option>
+            <option value="both" selected>Either / Both</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="interest">Tell us about yourself and your interest in astrology</label>
+          <textarea id="interest" rows="3" placeholder="What draws you to Jyotish? Any prior exposure or experience?"></textarea>
+        </div>
+
         <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Create Account</button>
         <p class="form-note text-center">Already registered? <a href="/login.html" style="color:var(--vermillion);">Log in instead</a></p>
       </form>

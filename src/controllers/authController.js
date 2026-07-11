@@ -4,11 +4,27 @@ const Student = require('../models/Student');
 const generateToken = require('../utils/generateToken');
 const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 
-// @desc    Register a new student (public self-registration)
+// @desc    Register a new student (public self-registration) - captures a
+//          full admission-style profile upfront, not just login credentials
 // @route   POST /api/auth/register
 // @access  Public
 const registerStudent = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, whatsapp } = req.body;
+  const {
+    name,
+    email,
+    password,
+    phone,
+    whatsapp,
+    address,
+    city,
+    state,
+    pincode,
+    preferredStudyMode,
+    educationalQualification,
+    occupation,
+    priorAstrologyExperience,
+    preferredLanguage,
+  } = req.body;
 
   if (!name || !email || !password || !phone) {
     res.status(400);
@@ -30,7 +46,18 @@ const registerStudent = asyncHandler(async (req, res) => {
     role: 'student',
   });
 
-  const student = await Student.create({ user: user._id });
+  const student = await Student.create({
+    user: user._id,
+    address,
+    city,
+    state,
+    pincode,
+    preferredStudyMode,
+    educationalQualification,
+    occupation,
+    priorAstrologyExperience,
+    preferredLanguage,
+  });
 
   const token = generateToken(user._id);
 

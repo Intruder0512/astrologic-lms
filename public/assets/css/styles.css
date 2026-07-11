@@ -242,22 +242,32 @@ p { margin: 0 0 var(--space-2); color: var(--ink-soft); }
 }
 
 @media (max-width: 1180px) {
+  .nav { flex-wrap: wrap; }
   .nav-toggle { display: inline-flex; }
   .nav-links, .nav-actions { display: none; }
   .nav-links.open {
     display: flex;
-    position: absolute;
-    top: 100%; left: 0; right: 0;
     flex-direction: column;
     align-items: flex-start;
+    flex-basis: 100%;
+    width: 100%;
+    order: 10;
     background: var(--cream);
     padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--line);
     gap: var(--space-2);
-    flex-wrap: wrap;
   }
   .nav-links.open a { white-space: normal; }
-  .nav-actions.open { display: flex; flex-direction: column; align-items: flex-start; width: 100%; padding: 0 var(--space-3) var(--space-2); background: var(--cream); position: absolute; top: calc(100% + 1px); left: 0; right: 0; }
+  .nav-actions.open {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-basis: 100%;
+    width: 100%;
+    order: 11;
+    padding: 0 var(--space-3) var(--space-2);
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
+  }
 }
 
 /* ---------- Orbital motif (signature element) ---------- */
