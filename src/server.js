@@ -16,6 +16,7 @@ const studentRoutes = require('./routes/studentRoutes');
 const enquiryRoutes = require('./routes/enquiryRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
 
 const app = express();
 
@@ -82,7 +83,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     message: 'ICAS Lucknow-III API is running',
-    phase: 1,
+    phase: 2,
     database: isDbConnected() ? 'connected' : 'disconnected',
   });
 });
@@ -98,6 +99,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/teacher', teacherRoutes);
 
 // JSON 404 for unmatched API routes; HTML 404 for everything else (a typo'd
 // page URL, a stale link, etc.) - keeps the site itself from looking broken

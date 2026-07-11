@@ -1,6 +1,11 @@
+function redirectForRole(role) {
+  const destinations = { instructor: '/teacher-dashboard.html', admin: '/dashboard.html', student: '/dashboard.html' };
+  window.location.href = destinations[role] || '/dashboard.html';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (API.isLoggedIn()) {
-    window.location.href = '/dashboard.html';
+    redirectForRole(API.getUser()?.role);
     return;
   }
 
@@ -19,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       API.setToken(data.token);
       API.setUser(data.user);
-      window.location.href = '/dashboard.html';
+      redirectForRole(data.user.role);
     } catch (err) {
       msg.textContent = err.message || 'Login failed. Check your email and password.';
       msg.className = 'form-message error';

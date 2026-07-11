@@ -88,8 +88,34 @@ function renderDashboard(data) {
   }
 }
 
+async function loadUpcomingClassesWidget() {
+  const el = document.getElementById('upcoming-classes-widget');
+  try {
+    const data = await API.getStudentCalendar({ from: new Date().toISOString() });
+    const classes = (data.liveClasses || []).slice(0, 3);
+    if (!classes.length) {
+      el.innerHTML = '<p class="form-note">No upcoming classes scheduled yet.</p>';
+      return;
+    }
+    el.innerHTML = classes
+      .map(
+        (c) => `
+      <div style="padding:0.6em 0;border-bottom:1px dotted var(--line-on-light);">
+        <strong style="font-size:0.88rem;">${escDash(c.title)}</strong>
+        <div class="form-note" style="margin:0.2em 0 0;">${new Date(c.scheduledStart).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+        ${c.teamsJoinUrl ? `<a href="${c.teamsJoinUrl}" target="_blank" rel="noopener" style="font-size:0.78rem;color:var(--vermillion);">Join on Teams &rarr;</a>` : ''}
+      </div>
+    `
+      )
+      .join('');
+  } catch (err) {
+    el.innerHTML = '<p class="form-note">Could not load upcoming classes.</p>';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initDashboard();
+  loadUpcomingClassesWidget();
 
   document.getElementById('doc-upload-form').addEventListener('submit', async (e) => {
     e.preventDefault();

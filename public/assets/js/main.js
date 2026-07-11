@@ -24,8 +24,9 @@ function renderAuthState() {
 
   if (API.isLoggedIn()) {
     const user = API.getUser();
+    const dashboardUrl = user?.role === 'instructor' ? '/teacher-dashboard.html' : '/dashboard.html';
     slot.innerHTML = `
-      <a href="/dashboard.html" class="btn btn-outline-dark">${escapeHtml(user?.name?.split(' ')[0] || 'My Account')}</a>
+      <a href="${dashboardUrl}" class="btn btn-outline-dark">${escapeHtml(user?.name?.split(' ')[0] || 'My Account')}</a>
       <button class="btn btn-primary" id="logout-btn" type="button">Log Out</button>
     `;
     document.getElementById('logout-btn')?.addEventListener('click', () => {

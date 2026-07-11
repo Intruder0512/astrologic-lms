@@ -1,22 +1,48 @@
-# ICAS Lucknow-III — Website & Backend (Phase 1)
+# ICAS Lucknow-III — Website & Backend (Phase 1 + Phase 2)
 
 Full-stack Node.js/Express + MongoDB app for **ICAS Lucknow-III**, a chapter
 of the Indian Council of Astrological Sciences based at Purushottamanand
-Ashram, Iradat Nagar, Hasanganj, Lucknow. Covers **Section 15, Phase 1** of
-the project spec: a public marketing website plus the admissions/enquiries/
-payments backend behind it.
+Ashram, Iradat Nagar, Hasanganj, Lucknow. Covers **Section 15, Phase 1**
+(public website + admissions/enquiries/payments) and now **Phase 2**: course
+content structure, Microsoft Teams live classes, a calendar, and email
+notifications for schedule changes.
 
 **Chapter scope, verified against the official ICAS registry**
 (icasindia.org/ICAS/Centres.html): this chapter is registered to teach
 **Jyotish Praveena and Jyotish Visharada only**, both online and in direct
-classroom, coordinated by Shri Markandeya Shukla. Earlier drafts of this site
-incorrectly included Vastu/Nakshatra/Bhushan courses pulled from a different
-chapter's site (Lucknow-II) — corrected. Don't add other course types back
-without confirming this chapter has been registered to teach them.
+classroom, coordinated by Shri Markandeya Shukla. Don't add other course
+types without confirming this chapter has been registered to teach them.
 
-Live classes (Section 5.5, using **Microsoft Teams** per your requirement) and
-the full curriculum/video/PDF LMS (Section 5.2–5.8) are **Phase 2** — not in
-this delivery.
+## Phase 2: what's new
+
+**Three account types, all functional now:**
+- **Admin** — everything from Phase 1, plus creating/managing instructor
+  accounts and a chapter-wide calendar view.
+- **Instructor (teacher)** — a real dashboard (`/teacher-dashboard.html`):
+  see assigned courses, schedule live classes (auto-creates a Teams meeting
+  and emails the batch), take attendance, post announcements.
+- **Student (learner)** — calendar of upcoming classes with one-click Teams
+  join links, course content (modules/lessons), lesson completion tracking,
+  announcements - all from the existing student dashboard plus the new
+  `/calendar.html`.
+
+**Microsoft Teams integration** (`src/services/msGraph.js`) — creates a real
+Teams meeting via Microsoft Graph API when an instructor schedules a class.
+Requires Azure AD app registration - see the setup steps in that file's
+header comment. **Not configured yet? Nothing breaks** — classes still get
+created and students still get emailed, just without an auto-generated Teams
+link (same graceful-degradation pattern as Razorpay in Phase 1).
+
+**Calendar** (`/calendar.html`) — role-aware: shows the logged-in user's
+own classes (student: enrolled batches; instructor: courses they teach;
+admin: everything). Month grid + upcoming agenda list, both pulling from
+the same `LiveClass` data the scheduling flow creates.
+
+**Email notifications, wired to real events** (not just Phase 1's admission
+emails) — a class being scheduled, rescheduled, or cancelled all trigger an
+email to every enrolled, batch-allocated student in that batch. Posting an
+announcement does too. Uses the same SMTP config as Phase 1.
+
 
 ## What's included
 
@@ -59,6 +85,19 @@ Requires a MongoDB connection string — for hosted deployment (e.g.
 Hostinger's MongoDB Atlas connector), see the notes below. Locally or on any
 other host, set `MONGODB_URI` (or `MONGO_URI`) directly in `.env`.
 
+**Creating an instructor (teacher) account** — there's no self-signup for
+this role by design. Log in as admin and call:
+```bash
+curl -X POST http://localhost:5000/api/admin/instructors \
+  -H "Authorization: Bearer <admin_jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Shri Markandeya Shukla","email":"instructor@example.com","password":"ChangeMe@123","microsoftUpn":"instructor@yourtenant.onmicrosoft.com"}'
+```
+`microsoftUpn` is required for that instructor's live classes to get an
+auto-created Teams link — see `src/services/msGraph.js` for the Azure AD
+setup this depends on. Then use the admin panel (or a direct `PUT
+/api/admin/courses/:id`) to add that instructor to the courses they teach.
+
 ## Project structure
 
 ```
@@ -73,8 +112,11 @@ public/
     logo.png                your ICAS emblem
 src/
   config/db.js            MongoDB connection (retry-with-backoff, no crash)
-  models/                 User, Student, Course, Batch, Enquiry, Payment
+  models/                 User, Student, Course, Batch, Enquiry, Payment,
+                            CourseModule, Lesson, LiveClass, Announcement,
+                            LessonProgress (Phase 2)
   middleware/              auth (JWT + role guard), requireDb, upload, errorHandler
+  services/msGraph.js      Microsoft Teams meeting creation (Phase 2)
   controllers/              business logic per resource
   routes/                    Express routers, mounted in server.js
   utils/                     token generation, email templates, seed scripts
@@ -101,8 +143,29 @@ src/
 | POST | `/api/students/me/documents` | Upload a document (multipart, field `document`, body `type`) |
 | POST | `/api/students/me/register-interest` | Register interest in a course/batch |
 | GET | `/api/students/me/dashboard` | Dashboard summary (Section 8) |
+| GET | `/api/students/me/courses/:courseId/content` | Modules + lessons for an enrolled course (Phase 2) |
+| POST | `/api/students/me/lessons/:id/complete` | Mark a lesson complete / submit quiz score (Phase 2) |
+| GET | `/api/students/me/calendar` | Upcoming live classes across enrolled batches (Phase 2) |
+| GET | `/api/students/me/announcements` | Announcements for enrolled courses (Phase 2) |
 | POST | `/api/payments/create-order` | Create Razorpay order for fee/instalment |
 | POST | `/api/payments/verify` | Verify payment signature client-side |
+
+### Instructor / Teacher (JWT required, role=instructor) — Phase 2
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/teacher/courses` | Courses this instructor is assigned to |
+| GET | `/api/teacher/courses/:courseId/batches` | Batches for a course they teach |
+| POST/GET | `/api/teacher/courses/:courseId/modules` | Create / list modules |
+| PUT/DELETE | `/api/teacher/modules/:id` | Update / delete a module |
+| POST | `/api/teacher/modules/:moduleId/lessons` | Add a lesson (video/pdf/live_class/quiz/assignment/text/link) |
+| PUT/DELETE | `/api/teacher/lessons/:id` | Update / delete a lesson |
+| POST | `/api/teacher/live-classes` | Schedule a live class — creates Teams meeting + emails the batch |
+| PUT | `/api/teacher/live-classes/:id` | Reschedule — updates Teams meeting + re-emails |
+| DELETE | `/api/teacher/live-classes/:id` | Cancel — deletes Teams meeting + emails cancellation |
+| GET | `/api/teacher/live-classes?from=&to=` | This instructor's calendar data |
+| GET | `/api/teacher/live-classes/:id/roster` | Batch roster for attendance |
+| POST | `/api/teacher/live-classes/:id/attendance` | Record attendance |
+| POST | `/api/teacher/announcements` | Post + email an announcement |
 
 ### Admin (JWT required, role=admin)
 | Method | Route | Purpose |
@@ -115,6 +178,8 @@ src/
 | PUT | `/api/admin/students/:id/allocate-batch` | Allocate approved student to a batch |
 | GET/PUT | `/api/admin/enquiries` | Lead list + status/assignment updates |
 | POST | `/api/admin/payments/offline` | Record cash/bank-transfer payment |
+| POST/GET/PUT | `/api/admin/instructors` | Create / list / update instructor (teacher) accounts (Phase 2) |
+| GET | `/api/admin/calendar` | Chapter-wide calendar, every course/instructor (Phase 2) |
 
 ## Admission workflow (matches Section 6.2)
 

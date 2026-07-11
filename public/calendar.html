@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar — ICAS Lucknow-III</title>
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+<style>
+  .cal-wrap { display:grid; grid-template-columns: 1.5fr 1fr; gap: var(--space-3); align-items:start; }
+  @media (max-width: 900px) { .cal-wrap { grid-template-columns: 1fr; } }
+  .cal-card { background: var(--ivory); border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: var(--space-3); }
+  .cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-2); }
+  .cal-nav-btn { font-family: var(--font-mono); font-size:0.85rem; border:1px solid var(--line-on-light); background:#fff; border-radius: var(--radius-sm); padding:0.4em 0.9em; cursor:pointer; }
+  .cal-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-dow { font-family: var(--font-mono); font-size:0.68rem; text-transform:uppercase; color:var(--ink-soft); text-align:center; padding:0.4em 0; }
+  .cal-day { min-height: 64px; border:1px solid var(--line-on-light); border-radius:4px; padding:0.3em; font-size:0.78rem; position:relative; }
+  .cal-day.empty { border-color:transparent; }
+  .cal-day .day-num { font-family: var(--font-mono); color: var(--ink-soft); }
+  .cal-day.today .day-num { color: var(--vermillion); font-weight:600; }
+  .cal-dot { width:6px; height:6px; border-radius:50%; background:var(--vermillion); display:inline-block; margin:2px 1px 0; }
+  .agenda-item { border-bottom: 1px dotted var(--line-on-light); padding: 0.8em 0; }
+  .agenda-item:last-child { border-bottom:none; }
+  .agenda-time { font-family: var(--font-mono); font-size:0.72rem; color: var(--vermillion); text-transform:uppercase; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="Indian Council of Astrological Sciences emblem">
+      <span class="nav-brand-text">ICAS Lucknow-III<small>Purushottamanand Ashram Centre</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/astrology.html">About Astrology</a></li>
+      <li><a href="/gallery.html">Gallery</a></li>
+      <li><a href="/calendar.html" class="active">Calendar</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<div id="gate-message" class="section" style="display:none;">
+  <div class="container text-center">
+    <span class="eyebrow">Login Required</span>
+    <h2>Log in to view your class calendar.</h2>
+    <a href="/login.html" class="btn btn-primary">Log In</a>
+  </div>
+</div>
+
+<div id="cal-content" style="display:none;">
+  <section class="section" style="padding-bottom:0;">
+    <div class="container">
+      <span class="eyebrow">Live Classes</span>
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Calendar</h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container cal-wrap">
+      <div class="cal-card">
+        <div class="cal-header">
+          <button class="cal-nav-btn" id="cal-prev">&larr; Prev</button>
+          <h3 id="cal-month-label" style="margin:0;">—</h3>
+          <button class="cal-nav-btn" id="cal-next">Next &rarr;</button>
+        </div>
+        <div class="cal-grid" id="cal-dow-row"></div>
+        <div class="cal-grid" id="cal-grid" style="margin-top:2px;"></div>
+      </div>
+
+      <div class="cal-card">
+        <h3>Upcoming</h3>
+        <div id="agenda-list"><p class="form-note">Loading…</p></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS Lucknow-III. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-calendar.js"></script>
+</body>
+</html>

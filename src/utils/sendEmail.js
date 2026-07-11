@@ -32,6 +32,18 @@ const sendEmail = async ({ to, subject, html }) => {
   }
 };
 
+const formatDateTime = (date) =>
+  new Date(date).toLocaleString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata',
+  }) + ' IST';
+
 // Pre-built templates matching Section 6.2 admission workflow touchpoints
 const emailTemplates = {
   registrationReceived: (name, courseName) => ({
@@ -53,6 +65,46 @@ const emailTemplates = {
     subject: 'Payment Confirmation - ICAS Lucknow-III',
     html: `<p>Dear ${name},</p>
       <p>We have received your payment of ₹${amount}. Receipt number: <strong>${receiptNumber}</strong>.</p>
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
+  }),
+  liveClassScheduled: (name, courseName, liveClass) => ({
+    subject: `Live Class Scheduled: ${liveClass.title} - ${courseName}`,
+    html: `<p>Dear ${name},</p>
+      <p>A live class has been scheduled for <strong>${courseName}</strong>:</p>
+      <table style="border-collapse:collapse;margin:12px 0;">
+        <tr><td style="padding:4px 12px 4px 0;color:#666;">Class</td><td><strong>${liveClass.title}</strong></td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#666;">Date &amp; Time</td><td>${formatDateTime(liveClass.scheduledStart)}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#666;">Duration</td><td>Until ${formatDateTime(liveClass.scheduledEnd)}</td></tr>
+      </table>
+      ${liveClass.teamsJoinUrl ? `<p><a href="${liveClass.teamsJoinUrl}" style="background:#c1272d;color:#fff;padding:10px 20px;border-radius:4px;text-decoration:none;display:inline-block;">Join on Microsoft Teams</a></p>` : '<p>The join link will be shared closer to the class.</p>'}
+      <p>You can also see this on your calendar in the student dashboard.</p>
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
+  }),
+  liveClassRescheduled: (name, courseName, liveClass) => ({
+    subject: `Class Rescheduled: ${liveClass.title} - ${courseName}`,
+    html: `<p>Dear ${name},</p>
+      <p>The following live class has been <strong>rescheduled</strong>:</p>
+      <table style="border-collapse:collapse;margin:12px 0;">
+        <tr><td style="padding:4px 12px 4px 0;color:#666;">Class</td><td><strong>${liveClass.title}</strong></td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#666;">New Date &amp; Time</td><td>${formatDateTime(liveClass.scheduledStart)}</td></tr>
+      </table>
+      ${liveClass.teamsJoinUrl ? `<p><a href="${liveClass.teamsJoinUrl}" style="background:#c1272d;color:#fff;padding:10px 20px;border-radius:4px;text-decoration:none;display:inline-block;">Join on Microsoft Teams</a></p>` : ''}
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
+  }),
+  liveClassCancelled: (name, courseName, liveClass) => ({
+    subject: `Class Cancelled: ${liveClass.title} - ${courseName}`,
+    html: `<p>Dear ${name},</p>
+      <p>The live class <strong>${liveClass.title}</strong> originally scheduled for
+      ${formatDateTime(liveClass.scheduledStart)} has been <strong>cancelled</strong>.
+      We'll notify you once it's rescheduled.</p>
+      <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
+  }),
+  announcementPosted: (name, courseName, announcement) => ({
+    subject: `${courseName}: ${announcement.title}`,
+    html: `<p>Dear ${name},</p>
+      <p><strong>${announcement.title}</strong></p>
+      <p>${announcement.message}</p>
+      <p style="color:#888;font-size:0.85em;">Posted for ${courseName}</p>
       <p>Warm regards,<br/>ICAS Lucknow-III</p>`,
   }),
 };

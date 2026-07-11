@@ -4,6 +4,8 @@ const Batch = require('../models/Batch');
 const Course = require('../models/Course');
 const Payment = require('../models/Payment');
 const Enquiry = require('../models/Enquiry');
+const User = require('../models/User');
+const LiveClass = require('../models/LiveClass');
 const { sendEmail, emailTemplates } = require('../utils/sendEmail');
 
 // @desc    List student applications with filterable admission status
@@ -172,10 +174,94 @@ const getDashboardMetrics = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Create an instructor (teacher) account
+// @route   POST /api/admin/instructors
+// @access  Private/Admin
+const createInstructor = asyncHandler(async (req, res) => {
+  const { name, email, password, phone, microsoftUpn } = req.body;
+
+  if (!name || !email || !password) {
+    res.status(400);
+    throw new Error('Name, email and password are required');
+  }
+
+  const existing = await User.findOne({ email: email.toLowerCase() });
+  if (existing) {
+    res.status(400);
+    throw new Error('An account with this email already exists');
+  }
+
+  const instructor = await User.create({
+    name,
+    email,
+    password,
+    phone,
+    microsoftUpn,
+    role: 'instructor',
+  });
+
+  res.status(201).json({
+    success: true,
+    instructor: { id: instructor._id, name: instructor.name, email: instructor.email, role: instructor.role },
+  });
+});
+
+// @desc    List all instructors
+// @route   GET /api/admin/instructors
+// @access  Private/Admin
+const getInstructors = asyncHandler(async (req, res) => {
+  const instructors = await User.find({ role: 'instructor' }).select('-password');
+  res.json({ success: true, count: instructors.length, instructors });
+});
+
+// @desc    Update an instructor's details (including microsoftUpn for Teams, or deactivate)
+// @route   PUT /api/admin/instructors/:id
+// @access  Private/Admin
+const updateInstructor = asyncHandler(async (req, res) => {
+  const instructor = await User.findOne({ _id: req.params.id, role: 'instructor' });
+  if (!instructor) {
+    res.status(404);
+    throw new Error('Instructor not found');
+  }
+
+  const allowedFields = ['name', 'phone', 'whatsapp', 'microsoftUpn', 'isActive'];
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) instructor[field] = req.body[field];
+  });
+  await instructor.save();
+
+  res.json({ success: true, instructor: { ...instructor.toObject(), password: undefined } });
+});
+
+// @desc    Chapter-wide calendar - all live classes across every course/instructor
+// @route   GET /api/admin/calendar?from=&to=
+// @access  Private/Admin
+const getChapterCalendar = asyncHandler(async (req, res) => {
+  const { from, to } = req.query;
+  const where = {};
+  if (from || to) {
+    where.scheduledStart = {};
+    if (from) where.scheduledStart.$gte = new Date(from);
+    if (to) where.scheduledStart.$lte = new Date(to);
+  }
+
+  const liveClasses = await LiveClass.find(where)
+    .populate('course', 'title')
+    .populate('batch', 'batchName')
+    .populate('instructor', 'name email')
+    .sort({ scheduledStart: 1 });
+
+  res.json({ success: true, count: liveClasses.length, liveClasses });
+});
+
 module.exports = {
   getStudents,
   reviewAdmission,
   allocateBatch,
   createBatch,
   getDashboardMetrics,
+  createInstructor,
+  getInstructors,
+  updateInstructor,
+  getChapterCalendar,
 };

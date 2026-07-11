@@ -88,4 +88,46 @@ const API = {
   registerInterest(payload) {
     return this.request('/students/me/register-interest', { method: 'POST', body: payload, auth: true });
   },
+
+  // ---- Calendar (role-aware) ----
+  getStudentCalendar(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/students/me/calendar${qs ? '?' + qs : ''}`, { auth: true });
+  },
+  getTeacherCalendar(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/teacher/live-classes${qs ? '?' + qs : ''}`, { auth: true });
+  },
+  getAdminCalendar(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/calendar${qs ? '?' + qs : ''}`, { auth: true });
+  },
+
+  // ---- Teacher ----
+  getMyTeachingCourses() {
+    return this.request('/teacher/courses', { auth: true });
+  },
+  getCourseBatches(courseId) {
+    return this.request(`/teacher/courses/${courseId}/batches`, { auth: true });
+  },
+  scheduleLiveClass(payload) {
+    return this.request('/teacher/live-classes', { method: 'POST', body: payload, auth: true });
+  },
+  cancelLiveClass(id) {
+    return this.request(`/teacher/live-classes/${id}`, { method: 'DELETE', auth: true });
+  },
+  getLiveClassRoster(id) {
+    return this.request(`/teacher/live-classes/${id}/roster`, { auth: true });
+  },
+  recordAttendance(id, attendance) {
+    return this.request(`/teacher/live-classes/${id}/attendance`, { method: 'POST', body: { attendance }, auth: true });
+  },
+  postAnnouncement(payload) {
+    return this.request('/teacher/announcements', { method: 'POST', body: payload, auth: true });
+  },
+
+  // ---- Student announcements ----
+  getMyAnnouncements() {
+    return this.request('/students/me/announcements', { auth: true });
+  },
 };

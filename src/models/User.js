@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'instructor', 'student'],
       default: 'student',
     },
+    // Required for instructors who will have Teams live classes scheduled
+    // under their name - see src/services/msGraph.js. Must be a real user
+    // in the Microsoft 365 tenant (usually their email, but not always the
+    // same as their login email here).
+    microsoftUpn: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
   },

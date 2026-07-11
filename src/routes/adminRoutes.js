@@ -18,6 +18,10 @@ const {
   allocateBatch,
   createBatch,
   getDashboardMetrics,
+  createInstructor,
+  getInstructors,
+  updateInstructor,
+  getChapterCalendar,
 } = require('../controllers/adminController');
 
 const router = express.Router();
@@ -48,5 +52,13 @@ router.put('/enquiries/:id', updateEnquiry);
 
 // Payments
 router.post('/payments/offline', recordOfflinePayment);
+
+// Instructors (Phase 2)
+router.post('/instructors', createInstructor);
+router.get('/instructors', getInstructors);
+router.put('/instructors/:id', updateInstructor);
+
+// Chapter-wide calendar (Phase 2)
+router.get('/calendar', getChapterCalendar);
 
 module.exports = router;

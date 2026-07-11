@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Dashboard — ICAS Lucknow-III</title>
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/styles.css">
+<style>
+  .dash-grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); align-items:start; }
+  @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+  .dash-card { background: var(--ivory); border:1px solid var(--line-on-light); border-radius: var(--radius-md); padding: var(--space-3); margin-bottom: var(--space-3); }
+  .class-row { border-bottom: 1px dotted var(--line-on-light); padding: 0.8em 0; }
+  .class-row:last-child { border-bottom:none; }
+  .class-row-top { display:flex; justify-content:space-between; align-items:flex-start; gap: var(--space-2); }
+  .roster-list { margin-top:0.6em; display:none; }
+  .roster-list.open { display:block; }
+  .roster-row { display:flex; align-items:center; gap:0.6em; padding:0.3em 0; font-size:0.85rem; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">
+      <img src="/assets/logo.png" alt="Indian Council of Astrological Sciences emblem">
+      <span class="nav-brand-text">ICAS Lucknow-III<small>Purushottamanand Ashram Centre</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/courses.html">Courses</a></li>
+      <li><a href="/astrology.html">About Astrology</a></li>
+      <li><a href="/gallery.html">Gallery</a></li>
+      <li><a href="/calendar.html">Calendar</a></li>
+      <li><a href="/about.html">Who We Are</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-actions" data-auth-slot></div>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
+</header>
+
+<div id="gate-message" class="section" style="display:none;">
+  <div class="container text-center">
+    <span class="eyebrow">Login Required</span>
+    <h2>Log in as an instructor to view this page.</h2>
+    <a href="/login.html" class="btn btn-primary">Log In</a>
+  </div>
+</div>
+
+<div id="dash-content" style="display:none;">
+  <section class="section" style="padding-bottom:0;">
+    <div class="container">
+      <span class="eyebrow">Teacher Dashboard</span>
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);">Welcome, <span id="dash-name">Instructor</span>.</h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container dash-grid">
+      <div>
+        <div class="dash-card">
+          <h3>My Courses</h3>
+          <div id="my-courses-list"><p class="form-note">Loading…</p></div>
+        </div>
+
+        <div class="dash-card">
+          <h3>Schedule a Live Class</h3>
+          <div id="schedule-message" class="form-message"></div>
+          <form id="schedule-form">
+            <div class="field">
+              <label for="s-course">Course</label>
+              <select id="s-course" required></select>
+            </div>
+            <div class="field">
+              <label for="s-batch">Batch</label>
+              <select id="s-batch" required><option value="">Select a course first</option></select>
+            </div>
+            <div class="field">
+              <label for="s-title">Class Title</label>
+              <input type="text" id="s-title" placeholder="e.g. Module 3: Dasha Systems" required>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="s-start">Starts</label>
+                <input type="datetime-local" id="s-start" required>
+              </div>
+              <div class="field">
+                <label for="s-end">Ends</label>
+                <input type="datetime-local" id="s-end" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="schedule-btn">Schedule Class</button>
+            <p class="form-note">Enrolled students in the selected batch are emailed automatically with the class details.</p>
+          </form>
+        </div>
+      </div>
+
+      <div>
+        <div class="dash-card">
+          <h3>Upcoming Classes</h3>
+          <div id="upcoming-classes"><p class="form-note">Loading…</p></div>
+        </div>
+
+        <div class="dash-card">
+          <h3>Post an Announcement</h3>
+          <div id="announce-message" class="form-message"></div>
+          <form id="announce-form">
+            <div class="field">
+              <label for="a-course">Course</label>
+              <select id="a-course" required></select>
+            </div>
+            <div class="field">
+              <label for="a-title">Title</label>
+              <input type="text" id="a-title" required>
+            </div>
+            <div class="field">
+              <label for="a-message">Message</label>
+              <textarea id="a-message" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-outline-light btn-block">Post &amp; Email Students</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> ICAS Lucknow-III. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/page-teacher-dashboard.js"></script>
+</body>
+</html>
