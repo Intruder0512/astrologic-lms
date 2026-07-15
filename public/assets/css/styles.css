@@ -477,6 +477,24 @@ p { margin: 0 0 var(--space-2); color: var(--ink-soft); }
 .metric .label { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; color: var(--ink-faint); }
 .list-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6em 0; border-bottom: 1px dotted var(--line); font-size: 0.88rem; gap: var(--space-2); }
 
+/* ---------- Social icons (footer, contact page) ---------- */
+.social-icons { display: flex; gap: 0.6em; align-items: center; }
+.social-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.75);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.social-icon:hover { background: var(--gold); color: var(--indigo-deep); transform: translateY(-2px); }
+.social-icon svg { width: 18px; height: 18px; }
+.social-icon-light { background: var(--cream-dim); color: var(--indigo-deep); }
+.social-icon-light:hover { background: var(--burgundy); color: #fff; }
+
 /* ---------- Admission announcement banner (flashing urgency CTA) ---------- */
 .admission-banner {
   background: linear-gradient(90deg, var(--burgundy), var(--burgundy-bright));
