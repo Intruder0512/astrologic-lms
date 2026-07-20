@@ -26,6 +26,30 @@ const app = express();
 // clients and logs a validation warning on every rate-limited request.
 app.set('trust proxy', 1);
 
+// Canonical domain enforcement (301, permanent): redirect www -> non-www and
+// http -> https. Without this, search engines see icaslucknow.com,
+// www.icaslucknow.com, and the http:// versions of both as four separate
+// sites with identical content, splitting ranking signals across all of
+// them instead of consolidating on one. Every canonical URL, sitemap entry,
+// and structured data reference in this codebase already assumes
+// https://icaslucknow.com (non-www) as the one true form - this middleware
+// is what actually enforces that at the server level instead of just
+// hoping nobody links to the www version.
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== 'production') return next();
+
+  const host = req.headers.host || '';
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const isWww = host.startsWith('www.');
+  const isInsecure = proto !== 'https';
+
+  if (isWww || isInsecure) {
+    const canonicalHost = isWww ? host.slice(4) : host;
+    return res.redirect(301, `https://${canonicalHost}${req.originalUrl}`);
+  }
+  next();
+});
+
 connectDB();
 
 // Scripts stay locked to same-origin (script-src 'self') - every page's JS
