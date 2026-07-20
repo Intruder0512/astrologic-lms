@@ -39,7 +39,7 @@ function updateMetaForCourse(c) {
     (c.shortDescription || c.description || '').slice(0, 150) ||
     `${c.title} — a certified Vedic astrology course from ICAS Lucknow Chapter.`;
   const url = `https://icaslucknow.com/course.html?slug=${encodeURIComponent(c.slug)}`;
-  const ogImage = 'https://icaslucknow.com/assets/og/og-image.png';
+  const ogImage = 'https://icaslucknow.com/assets/og/og-image.jpg';
 
   document.title = title;
   document.getElementById('page-title').textContent = title;

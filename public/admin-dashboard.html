@@ -7,8 +7,11 @@
 <link rel="icon" href="/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/styles.css?v=20260721fix">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link id="fonts-stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print">
+<script>document.getElementById('fonts-stylesheet').addEventListener('load',function(){this.media='all';});</script>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="/assets/css/styles.css?v=20260721perf">
 <style>
   .dash-grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); align-items:start; }
   @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
@@ -30,7 +33,7 @@
 <header class="site-header">
   <nav class="nav">
     <a href="/index.html" class="nav-brand">
-      <img src="/assets/logo.png" alt="Indian Council of Astrological Sciences emblem">
+      <img src="/assets/logo.png" width="500" height="499" alt="Indian Council of Astrological Sciences emblem">
       <span class="nav-brand-text">ICAS<small>Vedic Astrology Courses</small></span>
     </a>
     <ul class="nav-links">
@@ -261,8 +264,8 @@
   </div>
 </footer>
 
-<script src="/assets/js/api.js?v=20260721fix"></script>
-<script src="/assets/js/main.js?v=20260721fix"></script>
-<script src="/assets/js/page-admin-dashboard.js?v=20260721fix"></script>
+<script src="/assets/js/api.js?v=20260721perf"></script>
+<script src="/assets/js/main.js?v=20260721perf"></script>
+<script src="/assets/js/page-admin-dashboard.js?v=20260721perf"></script>
 </body>
 </html>

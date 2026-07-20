@@ -83,9 +83,10 @@ app.use(
         imgSrc: ["'self'", 'data:'],
         scriptSrc: [
           "'self'",
-          "'sha256-DxTYmi80hkHsa4QzZ9dI1S0pqC1FaPMNmDRy+gsW4VU='", // EducationalOrganization (index/about/contact)
+          "'sha256-O9tVuBDBpCVcZydpdqvKsoUmCR41LM1KSESV1dItS98='", // EducationalOrganization (index/about/contact) - updated when og-image.png became og-image.jpg
           "'sha256-BOIebiZZqiEyvM6yMBf8p1inKL/a06LuIW/LuEHElkw='", // FAQPage (index)
           "'sha256-jpqrsJNo+sNyMcLVX0wxiLYJxKNuJMF2KBbKge7o0P8='", // Course listing (courses.html)
+          "'sha256-o774MftrJy6Z0Y+9OSxEy6ygrKRFvNjWNIx4B7wjSak='", // Async font-loading swap script (all pages)
         ],
         connectSrc: ["'self'"],
         frameSrc: ["'self'", 'https://www.google.com'],
@@ -99,7 +100,27 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Serve the public-facing website (HTML/CSS/JS). Mounted before the API
 // routes so a request for e.g. /index.html never reaches them, and before
 // the rate limiters below so static assets aren't subject to API limits.
-app.use(express.static(path.join(__dirname, '..', 'public')));
+//
+// Cache-Control is deliberately different for HTML vs everything else:
+// HTML pages get a short cache (60s) since their content changes often and
+// this project has already been bitten once by a caching layer serving
+// stale HTML after a deploy. CSS/JS/images get a long cache (30 days) -
+// CSS/JS are safe to cache hard because they're loaded with a version
+// query string (?v=...) that changes whenever the file does, and images
+// are safe because this codebase renames image files rather than
+// overwriting them in place when content changes (see the SEO image
+// rename from earlier).
+app.use(
+  express.static(path.join(__dirname, '..', 'public'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+      }
+    },
+  })
+);
 
 // Basic rate limiting on public-facing endpoints (enquiries, auth) to reduce spam/abuse
 const publicLimiter = rateLimit({
