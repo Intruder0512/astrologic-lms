@@ -1,0 +1,14 @@
+# icaslucknow.com - robots.txt
+
+User-agent: *
+Allow: /
+
+# Don't index logged-in application areas - these have no organic search
+# value and could confuse search engines about what the site "is" (a
+# marketing site + LMS, not a dashboard).
+Disallow: /dashboard.html
+Disallow: /teacher-dashboard.html
+Disallow: /admin-dashboard.html
+Disallow: /calendar.html
+
+Sitemap: https://icaslucknow.com/sitemap.xml

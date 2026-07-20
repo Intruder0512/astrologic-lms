@@ -37,6 +37,18 @@ connectDB();
 // the browser silently blocks the iframe (no console-visible breakage on
 // the page itself, just an empty box), since frame-src falls back to
 // default-src 'self' when not set explicitly.
+//
+// The three sha256 hashes below allowlist the site's inline JSON-LD
+// structured data blocks (EducationalOrganization on index/about/contact,
+// FAQPage on index, Course listing on courses.html) WITHOUT weakening
+// script-src with 'unsafe-inline'. Hash-based CSP only matches the exact
+// byte content of each block - if that content changes, its hash must be
+// recomputed here too, or the structured data will silently stop rendering
+// (no visible page breakage, since JSON-LD is inert data, but Google will
+// stop seeing it). Recompute with:
+//   python3 -c "import hashlib,base64; print(base64.b64encode(hashlib.sha256(open('block.txt','rb').read()).digest()).decode())"
+// where block.txt is the exact content between the <script> tags (not
+// including the tags themselves).
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -45,7 +57,12 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:'],
-        scriptSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'sha256-DxTYmi80hkHsa4QzZ9dI1S0pqC1FaPMNmDRy+gsW4VU='", // EducationalOrganization (index/about/contact)
+          "'sha256-BOIebiZZqiEyvM6yMBf8p1inKL/a06LuIW/LuEHElkw='", // FAQPage (index)
+          "'sha256-jpqrsJNo+sNyMcLVX0wxiLYJxKNuJMF2KBbKge7o0P8='", // Course listing (courses.html)
+        ],
         connectSrc: ["'self'"],
         frameSrc: ["'self'", 'https://www.google.com'],
       },
