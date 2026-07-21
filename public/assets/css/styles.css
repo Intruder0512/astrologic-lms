@@ -171,10 +171,12 @@ p { margin: 0 0 var(--space-2); color: var(--ink-soft); }
 .btn-block { width: 100%; justify-content: center; }
 
 /* ---------- Header / Nav ---------- */
-.site-header {
+.site-header-sticky {
   position: sticky;
   top: 0;
   z-index: 40;
+}
+.site-header {
   background: rgba(250, 247, 242, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
