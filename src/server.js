@@ -114,7 +114,13 @@ app.use(
   express.static(path.join(__dirname, '..', 'public'), {
     setHeaders: (res, filePath) => {
       if (filePath.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+        // Given how much friction stale-cache issues have caused on this
+        // project already, HTML gets zero ambiguity: always revalidate
+        // with the server before using any cached copy. The performance
+        // cost of this is negligible (HTML pages are small; the real
+        // caching win is already on CSS/JS/images below, which stay
+        // aggressively cached).
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       } else {
         res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
       }
