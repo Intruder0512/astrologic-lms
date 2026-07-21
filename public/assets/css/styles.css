@@ -1,31 +1,46 @@
 /* ============================================================
-   ICAS — Design System (Refined Light / Editorial)
+   ICAS — Design System (Manuscript / Traditional)
    ============================================================
-   A premium-institute aesthetic: warm cream background, serif
-   display type for editorial gravitas, clean sans body, deep
-   indigo + burgundy + gold accents drawn from the chapter's own
-   emblem. Celestial/orbital linework carries over as the
-   signature motif, now rendered as fine gold linework on cream
-   rather than neon-on-black - still astrology-grounded, reads
-   as considered rather than loud.
+   Warm parchment background, vermillion + marigold + deep indigo
+   drawn from the chapter's own emblem, serif display type for
+   manuscript gravitas. The kundli-diamond (square, diagonals,
+   inscribed diamond) is the signature decorative motif - the same
+   geometry an astrologer actually draws when charting a birth
+   chart, not an abstract graphic.
    ============================================================ */
 
 :root {
-  /* Color */
-  --cream: #faf7f2;
-  --cream-dim: #f1ece2;
-  --surface: #ffffff;
-  --indigo: #232a5c;
-  --indigo-deep: #171c40;
-  --burgundy: #a4293a;
-  --burgundy-bright: #c23349;
-  --gold: #c08a34;
-  --gold-soft: #e0b563;
-  --ink: #22242c;
-  --ink-soft: #5b5f6b;
-  --ink-faint: #8b8f99;
-  --line: rgba(35, 42, 92, 0.14);
-  --line-soft: rgba(35, 42, 92, 0.08);
+  /* Color - manuscript palette as the primary source of truth */
+  --parchment: #faf3e8;
+  --parchment-dim: #f0e6d6;
+  --ivory: #fffdf9;
+  --indigo-night: #1a2140;
+  --indigo-mid: #232a52;
+  --vermillion: #c1272d;
+  --vermillion-bright: #d94a44;
+  --marigold: #e8a33d;
+  --marigold-soft: #f0c374;
+  --ink: #241f1a;
+  --ink-soft: #6b5f52;
+  --ink-faint: #9c8f7d;
+  --line-manuscript: rgba(26, 33, 64, 0.14);
+  --line-soft-manuscript: rgba(26, 33, 64, 0.08);
+
+  /* Current-generation variable names, aliased onto the manuscript
+     palette above - every component built after the original
+     manuscript design still resolves through these names, so
+     nothing below this block needs to change. */
+  --cream: var(--parchment);
+  --cream-dim: var(--parchment-dim);
+  --surface: var(--ivory);
+  --indigo: var(--indigo-mid);
+  --indigo-deep: var(--indigo-night);
+  --burgundy: var(--vermillion);
+  --burgundy-bright: var(--vermillion-bright);
+  --gold: var(--marigold);
+  --gold-soft: var(--marigold-soft);
+  --line: var(--line-manuscript);
+  --line-soft: var(--line-soft-manuscript);
 
   /* Legacy variable names kept so every component below still works -
      mapped onto the new palette rather than rewriting every selector */
@@ -40,21 +55,13 @@
   --text-dim: var(--ink-soft);
   --text-faint: var(--ink-faint);
   --line-glow: var(--line);
-  --indigo-night: var(--indigo-deep);
-  --vermillion: var(--burgundy);
-  --vermillion-bright: var(--burgundy-bright);
-  --marigold: var(--gold);
-  --marigold-soft: var(--gold-soft);
-  --parchment: var(--cream);
-  --parchment-dim: var(--cream-dim);
-  --ivory: var(--surface);
   --line-on-dark: rgba(255,255,255,0.14);
   --line-on-light: var(--line);
 
   /* Type */
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
-  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-body: 'Work Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   /* Scale */
   --space-1: 0.5rem;
@@ -69,6 +76,7 @@
 
   --max-width: 1180px;
 }
+
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
