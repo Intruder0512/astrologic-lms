@@ -73,6 +73,13 @@ connectDB();
 //   python3 -c "import hashlib,base64; print(base64.b64encode(hashlib.sha256(open('block.txt','rb').read()).digest()).decode())"
 // where block.txt is the exact content between the <script> tags (not
 // including the tags themselves).
+// Google Analytics (GA4) needs two additions: script-src for the external
+// gtag.js library Google hosts (googletagmanager.com), and connect-src for
+// the actual data-collection requests gtag.js makes in the background
+// (google-analytics.com and the region-specific analytics.google.com
+// endpoints). The initialization code itself lives in
+// /assets/js/analytics.js rather than inline, so it needs no CSP hash of
+// its own - it's already covered by script-src 'self'.
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -80,15 +87,22 @@ app.use(
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        imgSrc: ["'self'", 'data:'],
+        imgSrc: ["'self'", 'data:', 'https://www.google-analytics.com', 'https://www.googletagmanager.com'],
         scriptSrc: [
           "'self'",
+          'https://www.googletagmanager.com',
           "'sha256-O9tVuBDBpCVcZydpdqvKsoUmCR41LM1KSESV1dItS98='", // EducationalOrganization (index/about/contact) - updated when og-image.png became og-image.jpg
           "'sha256-BOIebiZZqiEyvM6yMBf8p1inKL/a06LuIW/LuEHElkw='", // FAQPage (index)
           "'sha256-jpqrsJNo+sNyMcLVX0wxiLYJxKNuJMF2KBbKge7o0P8='", // Course listing (courses.html)
           "'sha256-o774MftrJy6Z0Y+9OSxEy6ygrKRFvNjWNIx4B7wjSak='", // Async font-loading swap script (all pages)
         ],
-        connectSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          'https://www.google-analytics.com',
+          'https://*.google-analytics.com',
+          'https://*.analytics.google.com',
+          'https://www.googletagmanager.com',
+        ],
         frameSrc: ["'self'", 'https://www.google.com'],
       },
     },
