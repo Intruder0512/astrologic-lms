@@ -495,6 +495,51 @@ p { margin: 0 0 var(--space-2); color: var(--ink-soft); }
 .status-rejected, .status-correction_required { background: rgba(164, 41, 58, 0.1); color: var(--burgundy); }
 .status-application_submitted { background: rgba(91,95,107,0.1); color: var(--ink-soft); }
 
+/* ---------- Lead capture popup ---------- */
+.lead-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 33, 64, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: var(--space-3);
+  animation: lead-popup-fade 0.25s ease;
+}
+@keyframes lead-popup-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.lead-popup {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 30px 80px rgba(26,33,64,0.35);
+}
+.lead-popup-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  color: var(--ink-soft);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lead-popup-close:hover { background: var(--burgundy); color: #fff; border-color: var(--burgundy); }
+
 /* ---------- Gallery grid (scrollable, uniform crops regardless of source orientation) ---------- */
 .gallery-grid {
   display: grid;

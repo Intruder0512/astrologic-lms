@@ -6,7 +6,7 @@ const { sendEmail } = require('../utils/sendEmail');
 // @route   POST /api/enquiries
 // @access  Public
 const createEnquiry = asyncHandler(async (req, res) => {
-  const { name, phone, email, whatsapp, courseInterested, message, source } = req.body;
+  const { name, phone, email, whatsapp, location, courseInterested, message, source } = req.body;
 
   if (!name || !phone) {
     res.status(400);
@@ -18,19 +18,50 @@ const createEnquiry = asyncHandler(async (req, res) => {
     phone,
     email,
     whatsapp,
+    location,
     courseInterested,
     message,
     source: source || 'website',
   });
 
+  // Notify the chapter directly, every time - this is the actual lead
+  // notification, separate from (and more important than) the optional
+  // thank-you email below. Wrapped so a mail-server hiccup never blocks
+  // the enquiry from saving - the lead is already in the database and
+  // visible in the admin dashboard regardless of whether this email sends.
+  try {
+    await sendEmail({
+      to: 'icaslucknowchapter@gmail.com',
+      subject: `New Enquiry - ${name} (${source || 'website'})`,
+      html: `
+        <p>New enquiry received:</p>
+        <ul>
+          <li><strong>Name:</strong> ${name}</li>
+          <li><strong>Phone:</strong> ${phone}</li>
+          ${location ? `<li><strong>Location:</strong> ${location}</li>` : ''}
+          ${email ? `<li><strong>Email:</strong> ${email}</li>` : ''}
+          ${whatsapp ? `<li><strong>WhatsApp:</strong> ${whatsapp}</li>` : ''}
+          ${message ? `<li><strong>Message:</strong> ${message}</li>` : ''}
+          <li><strong>Source:</strong> ${source || 'website'}</li>
+        </ul>
+      `,
+    });
+  } catch (err) {
+    console.error(`Enquiry notification email failed: ${err.message}`);
+  }
+
   // Automated acknowledgement (Section 10)
   if (email) {
-    await sendEmail({
-      to: email,
-      subject: 'Thank you for your enquiry - ICAS',
-      html: `<p>Dear ${name},</p><p>Thank you for reaching out to ICAS.
-        Our counselling team will contact you shortly.</p>`,
-    });
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Thank you for your enquiry - ICAS',
+        html: `<p>Dear ${name},</p><p>Thank you for reaching out to ICAS.
+          Our counselling team will contact you shortly.</p>`,
+      });
+    } catch (err) {
+      console.error(`Enquiry acknowledgement email failed: ${err.message}`);
+    }
   }
 
   res.status(201).json({ success: true, enquiry });

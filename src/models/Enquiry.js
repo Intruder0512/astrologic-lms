@@ -6,6 +6,7 @@ const enquirySchema = new mongoose.Schema(
     email: String,
     phone: { type: String, required: true },
     whatsapp: String,
+    location: String,
     courseInterested: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
     message: String,
 
